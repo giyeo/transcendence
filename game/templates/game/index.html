@@ -1,0 +1,274 @@
+<!-- App.svelte -->
+<div id="paddleA"	class="paddle"></div>
+<div id="paddleB"	class="paddle"></div>
+<div id="ball"		class="ball"></div>
+<!-- {#each ballPositionHistory as item, index (item)}
+  <div id=""class="ball" style="top: {item.y}px; left: {item.x}px; opacity: 0.1;"></div>
+{/each} -->
+<div id="horizontalWallLeft"	class="horizontalWall"	style="top: 0px;		left: 400px;"></div>
+<div id="horizontalWallRight"	class="horizontalWall"	style="top: 310px;		left: 400px; background-color: rgba(200,200,200,0.2);"></div>
+<div id="horizontalWallMid"		class="horizontalWall"	style="top: 620px;		left: 400px;"></div>
+<div id="verticalWall"			class="verticalWall"	style="top: 20px;		left: 790px;"></div>
+<!-- <div id="scoreA"				class="score"			style="top: 60px;		left: 650px;">scoreA</div>
+<div id="scoreB"				class="score"			style="top: 60px;		left: 860px;">scoreB</div> -->
+
+<!-- 
+<div class="info"			style="top: {650}px;	left: {leftShift + 0}px;">{stop} 800x600px object width 20px, paddle 100px</div>
+<div class="info"			style="top: {650}px;	left: {leftShift + 900}px;">vel:{ball.velocity} deg:{toDegre(ball.radians)} \n angle:{rad(ball.radians)}</div> -->
+<!-- <div>
+	<Socket />
+</div> -->
+<audio id="paddle" src="./paddle.mp3"></audio>
+<audio id="wall" src="./wall.mp3"></audio>
+<audio id="score" src="./score.mp3"></audio>
+
+<script lang="js">
+	let framerate = 12; //16 = 60fps
+	let player = 'A'
+	let leftShift = 400;
+	let scoreA = 0;
+	let scoreB = 0;
+	let paddleAx = leftShift + 35;
+	let paddleBx = leftShift + 745;
+	let paddleAy = 20 + 300 - 50;
+	let paddleBy = 20 + 300 - 50;
+	let paddleSize = 100;
+	let topWall = 20;
+	let botWall = 600;
+	let resetx = 400 - 10 + leftShift
+	let resety = 300 + 10
+	var stop = 1;
+	var ball = {
+			x: resetx,
+			y: resety,
+			radians: rad(315),
+			velocity: 5
+		};
+	var ballPositionHistory = [];
+	
+	async function goToPosition(newX, newY) {//interpolation, adding frames between
+		var oldX = ball.x;
+		var oldY = ball.y;
+		var DLSS = 4;
+		var i = 0
+		if(Math.abs(newX-oldX) < 300 ) {
+			while(i < DLSS) {
+				ball.x += ((newX - oldX) / DLSS );
+				ball.y += ((newY - oldY) / DLSS );
+				await sleep(framerate / DLSS );
+				i++;
+			}
+		}
+		ball.x = newX;
+		ball.y = newY;
+	}
+
+	let url = `ws://${window.location.host}/ws/socket-server/`
+
+	const chatSocket = new WebSocket(url)
+
+	chatSocket.onmessage = function(e){
+		let data = JSON.parse(e.data)
+		console.log('Data:', data)
+		// 	if(player === 'B')
+		// 		paddleAy = data.data.aY;//i dont receive myself, only if i'm player B
+		// 	else
+		// 		paddleBy = data.data.bY;
+		// 	// ball.x = data.data.ballX;
+		// 	// ball.y = data.data.ballY;
+		// 	goToPosition(data.data.ballX, data.data.ballY)
+		// 	ball.radians = data.data.ballRad;
+		// 	ball.velocity = data.data.ballVelocity;
+		// 	scoreA = data.data.scoreA;
+		// 	scoreB = data.data.scoreB;
+		// 	if(scoreA > 10 || scoreB > 10) {
+		// 			scoreA = 0;
+		// 			scoreB = 0;
+		// 	}
+		// 	updateElementPosition();
+	}
+
+	// const game = () => {
+	// 	socket.emit('game', {
+	// 		aY: paddleAy,//
+	// 		bY: paddleBy
+	// 	});
+	// };
+
+	// onMount(() => {
+	// 	socket.emit('join', 'User has joined the game');
+	// });
+
+	function playAudio(name) {
+		// const audio = document.getElementById(name);
+		// audio.play();
+  	}
+
+	function rad(x) {
+    	return ((x % 360) * (Math.PI / 180)) % 360;
+	}
+
+	function toDegre(x) {
+		return (x / Math.PI) * 180;
+	}
+
+	// Function to add a new point to the list
+	//create client predict tail
+	function addPosition(x, y) {
+		if (ballPositionHistory.length >= 25) {
+		// If the list has 10 or more elements, remove the oldest element
+			ballPositionHistory.shift();
+		}
+		ballPositionHistory = [...ballPositionHistory, { x, y }];
+	}
+
+	function soundByPosition() {
+		if (ball.x < leftShift || ball.x > leftShift + 800) {
+			playAudio("score");
+		}
+
+		if ( (ball.y > paddleAy && ball.y < paddleAy + paddleSize ) 
+		&& (ball.x > paddleAx - 10 && ball.x < paddleAx + 20)) {
+			playAudio("paddle");
+		}
+	
+		if ( (ball.y > paddleBy && ball.y < paddleBy + paddleSize ) 
+		&& (ball.x > paddleBx - 20 && ball.x < paddleBx + 10)) {
+			playAudio("paddle");
+		}
+
+		if (ball.y <= topWall || ball.y >= botWall) {
+			playAudio("wall");
+		}
+	}
+
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	async function gameloop() {
+		while(1) {
+			// game()
+			addPosition(ball.x, ball.y);
+			soundByPosition();
+			await sleep(framerate);
+		}
+	}
+
+	gameloop();
+	//800px x 600px //////////////////////////////////////////////////////////////////////q
+
+	let keyDownInterval = null;
+	let isKeyDown = false; // Flag to track key press
+	function startContinuousMove(direction) {
+		if (!isKeyDown) {
+			isKeyDown = true;
+			keyDownInterval = setInterval(() => {
+				if (direction === 'up' && paddleAy >= 30) {
+					paddleAy -= 10; // Move rectangle 1 upward
+					// paddleBy -= 10;
+				} else if (direction === 'down' && paddleAy < 520) {
+					paddleAy += 10; // Move rectangle 2 downward
+					// paddleBy += 10;
+				}
+				updateElementPosition();
+			}, 16); // Adjust the interval as needed for desired speed
+		}
+	}
+
+	function stopContinuousMove() {
+		clearInterval(keyDownInterval);
+		isKeyDown = false; // Reset the flag
+	}
+
+	// Handle keydown and keyup events
+	function handleKeyDown(event) {
+		if (event.key === 'ArrowUp') {
+			startContinuousMove('up');
+		} else if (event.key === 'ArrowDown') {
+			startContinuousMove('down');
+		}
+	}
+
+	function handleKeyUp(event) {
+		if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+			stopContinuousMove();
+		}
+		if (event.code === 'Space') {
+			if(stop < 0)
+				gameloop();
+			stop = stop * -1;
+		}
+	}
+	// Attach keydown and keyup event listeners to the document
+	document.addEventListener('keydown', handleKeyDown);
+	document.addEventListener('keyup', handleKeyUp);
+	document.addEventListener('DOMContentLoaded', function() {
+    	updateElementPosition();
+	});
+
+	function updateElementPosition() {
+		let element = document.getElementById('paddleA'); // Replace with your element's actual ID
+		element.style.top = `${paddleAy}px`;
+		element.style.left = `${paddleAx}px`;
+		element = document.getElementById('paddleB'); // Replace with your element's actual ID
+		element.style.top = `${paddleBy}px`;
+		element.style.left = `${paddleBx}px`;
+		element = document.getElementById('ball'); // Replace with your element's actual ID
+		element.style.top = `${ball.y}px`;
+		element.style.left = `${ball.x}px`;
+	}
+</script>
+
+<style>
+	body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+	background-color: grey;
+}
+
+.paddle {
+    width: 20px;
+    height: 100px;
+    background-color: black;
+    position: absolute;
+	z-index: 99;
+}
+
+.horizontalWall {
+	width: 800px;
+	height: 20px;
+	background-color: black;
+	position: absolute;
+}
+
+.verticalWall {
+	width: 20px;
+	border-left: 20px dashed black;
+	height: 600px;
+	position: absolute;
+}
+
+.ball {
+	height: 20px;
+	width: 20px;
+	background-color: black;
+	border-radius: 100%;
+	position: absolute;
+  }
+
+.score {
+    font-family: 'Press Start 2P', cursive;
+	font-size: 100px;
+	position: absolute;
+}
+
+.info {
+    font-family: 'Press Start 2P', cursive;
+	font-size: 20px;
+	position: absolute;
+}
+</style>
