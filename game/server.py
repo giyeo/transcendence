@@ -34,6 +34,7 @@ def gameloop(sid, data):
         gamedata[sid]['ballVelocity'] = 5
         gamedata[sid]['scoreA'] = 0
         gamedata[sid]['scoreB'] = 0
+        gamedata[sid]['turn'] = 'b'
     else:
         gamedata[sid]['aY'] = data['aY']
         gamedata[sid]['bY'] = data['bY']
@@ -41,7 +42,7 @@ def gameloop(sid, data):
     gamedata[sid] = newBallPosition(
         gamedata[sid]['aY'], gamedata[sid]['bY'],
         gamedata[sid]['ballY'], gamedata[sid]['ballX'], gamedata[sid]['ballRad'], gamedata[sid]['ballVelocity'],
-        gamedata[sid]['scoreA'], gamedata[sid]['scoreB'])
+        gamedata[sid]['scoreA'], gamedata[sid]['scoreB'], gamedata[sid]['turn'])
     emits += 1
     calcTime(sid)
     return gamedata[sid]

@@ -10,7 +10,7 @@ middleX = 400 - 10 + leftShift
 middleY = 300 + 10
 
 #garanta que só bata 1 vez a bola por paddle
-def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB):
+def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn):
 	
 	#bot
 	if(ballY >= 570):
@@ -34,7 +34,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB)
 		ballY = middleY
 		ballVelocity = 5
 	#hit paddle A
-	if ((ballY > aY and ballY < aY + paddleSize) 
+	if (turn == 'a' and (ballY > aY and ballY < aY + paddleSize) 
 	and (ballX > aX - 20 and ballX < aX + 20) ):
 		if(ballY > aY + 75):
 			ballRad = math.radians(60)
@@ -43,9 +43,10 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB)
 		else:
 			ballRad = math.radians(180) - ballRad
 		if(ballVelocity < 10):
-			ballVelocity += 0.25 
+			ballVelocity += 0.25
+		turn = 'b'
 	#hit paddle B
-	if ((ballY > bY and ballY < bY + paddleSize)
+	if (turn == 'b' and (ballY > bY and ballY < bY + paddleSize)
 	and (ballX > bX - 20 and ballX < bX + 20)):
 		if(ballY > bY + 75):
 			ballRad = math.radians(150)
@@ -55,6 +56,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB)
 			ballRad = math.radians(180) - ballRad
 		if(ballVelocity < 10):
 			ballVelocity += 0.25
+		turn = 'a'
 	#hit wall
 	if (ballY <= topWall or ballY >= botWall):
 		ballRad = -ballRad
@@ -67,5 +69,6 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB)
 		'ballRad':ballRad,
 		'ballVelocity':ballVelocity,
 		'scoreA':scoreA,
-		'scoreB':scoreB
+		'scoreB':scoreB,
+		'turn':turn
 	})
