@@ -1,31 +1,32 @@
-<!-- App.svelte -->
-<div id="paddleA"	class="paddle"></div>
-<div id="paddleB"	class="paddle"></div>
-<div id="ball"		class="ball"></div>
-<!-- {#each ballPositionHistory as item, index (item)}
-  <div id="tail" class="ball"></div>
-{/each} -->
-
-<div id="horizontalWallLeft"	class="horizontalWall"	style="top: 0px;		left: 400px;"></div>
-<div id="horizontalWallRight"	class="horizontalWall"	style="top: 310px;		left: 400px; background-color: rgba(200,200,200,0.2);"></div>
-<div id="horizontalWallMid"		class="horizontalWall"	style="top: 620px;		left: 400px;"></div>
-<div id="verticalWall"			class="verticalWall"	style="top: 20px;		left: 790px;"></div>
-<div id="scoreA"				class="score"			style="top: 60px;		left: 650px;">0</div>
-<div id="scoreB"				class="score"			style="top: 60px;		left: 860px;">0</div>
-
-<!-- 
-<div class="info"			style="top: {650}px;	left: {leftShift + 0}px;">{stop} 800x600px object width 20px, paddle 100px</div>
-<div class="info"			style="top: {650}px;	left: {leftShift + 900}px;">vel:{ball.velocity} deg:{toDegre(ball.radians)} \n angle:{rad(ball.radians)}</div> -->
-<!-- <div>
-	<Socket />
-</div> -->
-<!-- <audio id="paddle" src="./paddle.mp3"></audio>
-<audio id="wall" src="./wall.mp3"></audio>
-<audio id="score" src="./score.mp3"></audio> -->
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Pong!</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 </head>
+<body>
+	<div id="paddleA"	class="paddle"></div>
+	<div id="paddleB"	class="paddle"></div>
+	<div id="ball"		class="ball"></div>
+	<div id="tail">	</div>
+	<div id="horizontalWallLeft"	class="horizontalWall"	style="top: 0px;		left: 400px;"></div>
+	<div id="horizontalWallRight"	class="horizontalWall"	style="top: 310px;		left: 400px; background-color: rgba(200,200,200,0.2);"></div>
+	<div id="horizontalWallMid"		class="horizontalWall"	style="top: 620px;		left: 400px;"></div>
+	<div id="verticalWall"			class="verticalWall"	style="top: 20px;		left: 790px;"></div>
+	<div id="scoreA"				class="score"			style="top: 60px;		left: 650px;">0</div>
+	<div id="scoreB"				class="score"			style="top: 60px;		left: 860px;">0</div>
+
+	<!-- 
+	<div class="info"			style="top: {650}px;	left: {leftShift + 0}px;">{stop} 800x600px object width 20px, paddle 100px</div>
+	<div class="info"			style="top: {650}px;	left: {leftShift + 900}px;">vel:{ball.velocity} deg:{toDegre(ball.radians)} \n angle:{rad(ball.radians)}</div> -->
+
+	<!-- <audio id="paddle" src="./paddle.mp3"></audio>
+	<audio id="wall" src="./wall.mp3"></audio>
+	<audio id="score" src="./score.mp3"></audio> -->
+</body>
+</html>
 
 <script lang="js">
 	let framerate = 16; //16 = 60fps
@@ -49,7 +50,6 @@
 			radians: rad(315),
 			velocity: 5
 		};
-	var ballPositionHistory = [];
 	
 	async function goToPosition(newX, newY) {//interpolation, adding frames between
 		var oldX = ball.x;
@@ -120,14 +120,33 @@
 		return (x / Math.PI) * 180;
 	}
 
-	// Function to add a new point to the list
-	//create client predict tail
+	var ballPositionHistory = [];
+	const container = document.getElementById('tail');
+
 	function addPosition(x, y) {
-		if (ballPositionHistory.length >= 25) {
-		// If the list has 10 or more elements, remove the oldest element
-			ballPositionHistory.shift();
+		// Add the new position to the list
+		ballPositionHistory.push({ x, y });
+
+		// If the list exceeds the maximum length, remove the oldest element and its corresponding child element
+		if (ballPositionHistory.length > 25) {
+			const removedItem = ballPositionHistory.shift();
+			const removedChild = container.querySelector(`[data-x="${removedItem.x}"][data-y="${removedItem.y}"]`);
+			container.removeChild(removedChild);
 		}
-		ballPositionHistory = [...ballPositionHistory, { x, y }];
+
+		// Create a new <div> element for the new position
+		const ballElement = document.createElement('div');
+		ballElement.className = 'ball';
+		ballElement.style.top = `${y}px`;
+		ballElement.style.left = `${x}px`;
+		ballElement.style.opacity = '0.1';
+
+		// Set custom attributes to identify this element
+		ballElement.setAttribute('data-x', x);
+		ballElement.setAttribute('data-y', y);
+
+		// Append the new <div> element to the container
+		container.appendChild(ballElement);
 	}
 
 	function soundByPosition() {
