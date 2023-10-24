@@ -1,11 +1,15 @@
 from channels.generic.websocket import WebsocketConsumer
 import json
-
 from . import server
+import time
 
 class GameConsumer(WebsocketConsumer):
     def connect(self):
-        print("connect")
+        print("CONNECTED, CHANNEL:", self.channel_name)
+        #implement matchmaking here
+
+
+        time.sleep(1)
         self.accept()
 
 

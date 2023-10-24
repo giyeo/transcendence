@@ -37,7 +37,8 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		sound = "score"
 
 	#hit paddle A
-	if (turn == 'a' and (ballY > aY and ballY < aY + paddleSize) 
+	if (turn == 'a'
+	and (ballY > aY and ballY < aY + paddleSize) 
 	and (ballX > aX - 20 and ballX < aX + 20) ):
 		if(ballY > aY + 75):
 			ballRad = math.radians(60)
@@ -50,8 +51,9 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		turn = 'b'
 		sound = "paddle"
 	#hit paddle B
-	if (turn == 'b' and (ballY > bY and ballY < bY + paddleSize)
-	and (ballX > bX - 20 and ballX < bX + 20)):
+	if (turn == 'b'
+	and (ballY > bY and ballY < bY + paddleSize)
+	and (ballX > bX - 20 and ballX < bX + 20) ):
 		if(ballY > bY + 75):
 			ballRad = math.radians(150)
 		elif (ballY < bY + 25):

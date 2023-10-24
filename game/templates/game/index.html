@@ -9,6 +9,10 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'game/style.css' %}">
 </head>
 <body>
+	<div id="overlay">
+        <div id="message">Waiting for other players...</div>
+    </div>
+
 	<div id="paddleA"	class="paddle"></div>
 	<div id="paddleB"	class="paddle"></div>
 	<div id="ball"		class="ball"></div>
@@ -116,10 +120,13 @@
 	let url = `ws://${window.location.host}/ws/socket-server/`
 	const gameSocket = new WebSocket(url)
 
+	const overlay = document.getElementById('overlay');
 	gameSocket.onopen = function(e) {
-		gameSocket.send(JSON.stringify({
-			'join': 'Joined game'
-		}))
+		overlay.style.display = 'none';
+	}
+	// Show the overlay while waiting for the WebSocket to open
+	if (gameSocket.readyState !== WebSocket.OPEN) {
+		overlay.style.display = 'block';
 	}
 
 	gameSocket.onmessage = function(e){
@@ -180,7 +187,6 @@
 					paddleAy += 10; // Move rectangle 2 downward
 					// paddleBy += 10;
 				}
-				clientUpdateElementPosition();
 			}, 16); // Adjust the interval as needed for desired speed
 		}
 	}
@@ -242,4 +248,5 @@
 		element.innerHTML = `${scoreB}`;
 		element = document.getElementById('tail');
 	}
+
 </script>
