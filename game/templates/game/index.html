@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Pong!</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+	<link rel="stylesheet" type="text/css" href="{% static 'game/style.css' %}">
 </head>
 <body>
 	<div id="paddleA"	class="paddle"></div>
@@ -18,13 +20,9 @@
 	<div id="scoreA"				class="score"			style="top: 60px;		left: 650px;">0</div>
 	<div id="scoreB"				class="score"			style="top: 60px;		left: 860px;">0</div>
 
-	<!-- 
-	<div class="info"			style="top: {650}px;	left: {leftShift + 0}px;">{stop} 800x600px object width 20px, paddle 100px</div>
-	<div class="info"			style="top: {650}px;	left: {leftShift + 900}px;">vel:{ball.velocity} deg:{toDegre(ball.radians)} \n angle:{rad(ball.radians)}</div> -->
-
-	<!-- <audio id="paddle" src="./paddle.mp3"></audio>
-	<audio id="wall" src="./wall.mp3"></audio>
-	<audio id="score" src="./score.mp3"></audio> -->
+	<audio id="paddle" src="{% static 'game/paddle.mp3' %}"></audio>
+	<audio id="wall" src="{% static 'game/wall.mp3' %}"></audio>
+	<audio id="score" src="{% static 'game/score.mp3' %}"></audio>
 </body>
 </html>
 
@@ -43,11 +41,10 @@
 	let botWall = 600;
 	let resetx = 400 - 10 + leftShift
 	let resety = 300 + 10
-	var stop = 1;
 	var ball = {
 			x: resetx,
 			y: resety,
-			radians: rad(315),
+			radians: 0,
 			velocity: 5
 		};
 	
@@ -108,17 +105,9 @@
 	};
 
 	function playAudio(name) {
-		// const audio = document.getElementById(name);
-		// audio.play();
+		const audio = document.getElementById(name);
+		audio.play();
   	}
-
-	function rad(x) {
-    	return ((x % 360) * (Math.PI / 180)) % 360;
-	}
-
-	function toDegre(x) {
-		return (x / Math.PI) * 180;
-	}
 
 	var ballPositionHistory = [];
 	const container = document.getElementById('tail');
@@ -150,23 +139,19 @@
 	}
 
 	function soundByPosition() {
-		if (ball.x < leftShift || ball.x > leftShift + 800) {
+		if (ball.x < leftShift || ball.x > leftShift + 800)
 			playAudio("score");
-		}
 
 		if ( (ball.y > paddleAy && ball.y < paddleAy + paddleSize ) 
-		&& (ball.x > paddleAx - 10 && ball.x < paddleAx + 20)) {
+		&& (ball.x > paddleAx - 10 && ball.x < paddleAx + 20))
 			playAudio("paddle");
-		}
 	
 		if ( (ball.y > paddleBy && ball.y < paddleBy + paddleSize ) 
-		&& (ball.x > paddleBx - 20 && ball.x < paddleBx + 10)) {
+		&& (ball.x > paddleBx - 20 && ball.x < paddleBx + 10))
 			playAudio("paddle");
-		}
 
-		if (ball.y <= topWall || ball.y >= botWall) {
+		if (ball.y <= topWall || ball.y >= botWall)
 			playAudio("wall");
-		}
 	}
 
 	function sleep(ms) {
@@ -176,14 +161,13 @@
 	async function gameloop() {
 		while(1) {
 			game()
-			addPosition(ball.x, ball.y);
 			soundByPosition();
+			addPosition(ball.x, ball.y);
 			await sleep(framerate);
 		}
 	}
 
 	gameloop();
-	//800px x 600px //////////////////////////////////////////////////////////////////////q
 
 	let keyDownInterval = null;
 	let isKeyDown = false; // Flag to track key press
@@ -221,11 +205,6 @@
 		if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
 			stopContinuousMove();
 		}
-		if (event.code === 'Space') {
-			if(stop < 0)
-				gameloop();
-			stop = stop * -1;
-		}
 	}
 	// Attach keydown and keyup event listeners to the document
 	document.addEventListener('keydown', handleKeyDown);
@@ -251,67 +230,5 @@
 		element = document.getElementById('scoreB'); // Replace with your element's actual ID
 		element.innerHTML = `${scoreB}`;
 		element = document.getElementById('tail'); // Replace with your element's actual ID
-		ballPositionHistory.forEach((item, index) => {
-			//const ballElement = document.createElement('div');
-			
-			//ballElement.className = 'ball';
-			//ballElement.style.top = `${item.y - 480}px`;
-			//ballElement.style.left = `${item.x - 890}px`;
-			//ballElement.style.opacity = '0.1';
-			//element.appendChild(ballElement);
-		});
 	}
 </script>
-
-<style>
-	body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-	background-color: grey;
-}
-
-.paddle {
-    width: 20px;
-    height: 100px;
-    background-color: black;
-    position: absolute;
-	z-index: 99;
-}
-
-.horizontalWall {
-	width: 800px;
-	height: 20px;
-	background-color: black;
-	position: absolute;
-}
-
-.verticalWall {
-	width: 20px;
-	border-left: 20px dashed black;
-	height: 600px;
-	position: absolute;
-}
-
-.ball {
-	height: 20px;
-	width: 20px;
-	background-color: black;
-	border-radius: 100%;
-	position: absolute;
-  }
-
-.score {
-    font-family: 'Press Start 2P', cursive;
-	font-size: 100px;
-	position: absolute;
-}
-
-.info {
-    font-family: 'Press Start 2P', cursive;
-	font-size: 20px;
-	position: absolute;
-}
-</style>
