@@ -27,15 +27,25 @@
 </html>
 
 <script lang="js">
+	//paddleAx / Bx são declarados no backend e no front, devem ser mudados juntos, (podemos criar alguma lógica para pegar esses valores no handshake ou HTTP GET)
+	//player = 'A' deve ser um valor que é setado pelo backend e apenas usado por nós (after handshake)
+	//o framerate é um valor que está sendo setado no client, e diz o número de requests que ele faz para o backend em ms, se 16 = 16 por ms
+	//enviamos o Ay e By, são os valores inicias da posição do paddle
+
+	//basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
 	let framerate = 12; //16 = 60fps
 	let player = 'A'
 	let leftShift = 400;
-	let scoreA = 0;
-	let scoreB = 0;
 	let paddleAx = leftShift + 35;
 	let paddleBx = leftShift + 745;
+
+	//É declarado no front-end mesmo, podemos fazer uma lógica para pegar do backend no handshake.
 	let paddleAy = 20 + 300 - 50;
 	let paddleBy = 20 + 300 - 50;
+	
+	//Apenas seguram valores e setam inicialmente
+	let scoreA = 0;
+	let scoreB = 0;
 	var ball = {
 		x: 0,
 		y: 0,
@@ -43,7 +53,19 @@
 		velocity: 0
 	};
 	
-	async function goToPosition(newX, newY) {//interpolation, adding frames between
+	//____________________________UTILS_BEGIN____________________________
+	function playAudio(name) {
+		const audio = document.getElementById(name);
+		audio.play();
+  	}
+
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	//________________________INTERPOLATION_BEGIN____________________________
+	//adding frames N between old and new positions
+	async function goToPosition(newX, newY) {
 		var oldX = ball.x;
 		var oldY = ball.y;
 		var DLSS = 4;
@@ -60,6 +82,37 @@
 		ball.y = newY;
 	}
 
+	//____________________________TAIL_BEGIN____________________________
+	var ballPositionHistory = [];
+	const container = document.getElementById('tail');
+		
+	function addPosition(x, y) {
+		// Add the new position to the list
+		ballPositionHistory.push({ x, y });
+
+		// If the list exceeds the maximum length, remove the oldest element and its corresponding child element
+		if (ballPositionHistory.length > 25) {
+			const removedItem = ballPositionHistory.shift();
+			const removedChild = container.querySelector(`[data-x="${removedItem.x}"][data-y="${removedItem.y}"]`);
+			container.removeChild(removedChild);
+		}
+
+		// Create a new <div> element for the new position
+		const ballElement = document.createElement('div');
+		ballElement.className = 'ball';
+		ballElement.style.top = `${y}px`;
+		ballElement.style.left = `${x}px`;
+		ballElement.style.opacity = '0.1';
+
+		// Set custom attributes to identify this element
+		ballElement.setAttribute('data-x', x);
+		ballElement.setAttribute('data-y', y);
+
+		// Append the new <div> element to the container
+		container.appendChild(ballElement);
+	}
+	//____________________________SOCKET_BEGIN____________________________
+
 	let url = `ws://${window.location.host}/ws/socket-server/`
 	const gameSocket = new WebSocket(url)
 
@@ -71,7 +124,6 @@
 
 	gameSocket.onmessage = function(e){
 		let data = JSON.parse(e.data)
-		console.log('Data:', data)
 		if(player === 'B')
 			paddleAy = data.data.aY; //dont receive myself, only if i'm player B
 		else
@@ -101,43 +153,7 @@
 		}
 	};
 
-	function playAudio(name) {
-		const audio = document.getElementById(name);
-		audio.play();
-  	}
-
-	var ballPositionHistory = [];
-	const container = document.getElementById('tail');
-
-	function addPosition(x, y) {
-		// Add the new position to the list
-		ballPositionHistory.push({ x, y });
-
-		// If the list exceeds the maximum length, remove the oldest element and its corresponding child element
-		if (ballPositionHistory.length > 25) {
-			const removedItem = ballPositionHistory.shift();
-			const removedChild = container.querySelector(`[data-x="${removedItem.x}"][data-y="${removedItem.y}"]`);
-			container.removeChild(removedChild);
-		}
-
-		// Create a new <div> element for the new position
-		const ballElement = document.createElement('div');
-		ballElement.className = 'ball';
-		ballElement.style.top = `${y}px`;
-		ballElement.style.left = `${x}px`;
-		ballElement.style.opacity = '0.1';
-
-		// Set custom attributes to identify this element
-		ballElement.setAttribute('data-x', x);
-		ballElement.setAttribute('data-y', y);
-
-		// Append the new <div> element to the container
-		container.appendChild(ballElement);
-	}
-
-	function sleep(ms) {
-		return new Promise(resolve => setTimeout(resolve, ms));
-	}
+	//__________________________GAMELOOP_BEGIN____________________________
 
 	async function gameloop() {
 		while(1) {
@@ -147,9 +163,10 @@
 			await sleep(framerate);
 		}
 	}
-
 	gameloop();
 
+
+	//____________________________INPUT_BEGIN____________________________
 	let keyDownInterval = null;
 	let isKeyDown = false; // Flag to track key press
 	function startContinuousMove(direction) {
@@ -191,6 +208,7 @@
 	document.addEventListener('keydown', handleKeyDown);
 	document.addEventListener('keyup', handleKeyUp);
 
+	//____________________________UPDATE_CSS_BEGIN____________________________
 	document.addEventListener('DOMContentLoaded', function() {
     	updateElementPosition();
     });
