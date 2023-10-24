@@ -3,14 +3,15 @@
 <div id="paddleB"	class="paddle"></div>
 <div id="ball"		class="ball"></div>
 <!-- {#each ballPositionHistory as item, index (item)}
-  <div id=""class="ball" style="top: {item.y}px; left: {item.x}px; opacity: 0.1;"></div>
+  <div id="tail" class="ball"></div>
 {/each} -->
+
 <div id="horizontalWallLeft"	class="horizontalWall"	style="top: 0px;		left: 400px;"></div>
 <div id="horizontalWallRight"	class="horizontalWall"	style="top: 310px;		left: 400px; background-color: rgba(200,200,200,0.2);"></div>
 <div id="horizontalWallMid"		class="horizontalWall"	style="top: 620px;		left: 400px;"></div>
 <div id="verticalWall"			class="verticalWall"	style="top: 20px;		left: 790px;"></div>
-<!-- <div id="scoreA"				class="score"			style="top: 60px;		left: 650px;">scoreA</div>
-<div id="scoreB"				class="score"			style="top: 60px;		left: 860px;">scoreB</div> -->
+<div id="scoreA"				class="score"			style="top: 60px;		left: 650px;">0</div>
+<div id="scoreB"				class="score"			style="top: 60px;		left: 860px;">0</div>
 
 <!-- 
 <div class="info"			style="top: {650}px;	left: {leftShift + 0}px;">{stop} 800x600px object width 20px, paddle 100px</div>
@@ -18,12 +19,16 @@
 <!-- <div>
 	<Socket />
 </div> -->
-<audio id="paddle" src="./paddle.mp3"></audio>
+<!-- <audio id="paddle" src="./paddle.mp3"></audio>
 <audio id="wall" src="./wall.mp3"></audio>
-<audio id="score" src="./score.mp3"></audio>
+<audio id="score" src="./score.mp3"></audio> -->
+
+<head>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+</head>
 
 <script lang="js">
-	let framerate = 12; //16 = 60fps
+	let framerate = 16; //16 = 60fps
 	let player = 'A'
 	let leftShift = 400;
 	let scoreA = 0;
@@ -64,40 +69,43 @@
 	}
 
 	let url = `ws://${window.location.host}/ws/socket-server/`
+	const gameSocket = new WebSocket(url)
 
-	const chatSocket = new WebSocket(url)
-
-	chatSocket.onmessage = function(e){
-		let data = JSON.parse(e.data)
-		console.log('Data:', data)
-		// 	if(player === 'B')
-		// 		paddleAy = data.data.aY;//i dont receive myself, only if i'm player B
-		// 	else
-		// 		paddleBy = data.data.bY;
-		// 	// ball.x = data.data.ballX;
-		// 	// ball.y = data.data.ballY;
-		// 	goToPosition(data.data.ballX, data.data.ballY)
-		// 	ball.radians = data.data.ballRad;
-		// 	ball.velocity = data.data.ballVelocity;
-		// 	scoreA = data.data.scoreA;
-		// 	scoreB = data.data.scoreB;
-		// 	if(scoreA > 10 || scoreB > 10) {
-		// 			scoreA = 0;
-		// 			scoreB = 0;
-		// 	}
-		// 	updateElementPosition();
+	gameSocket.onopen = function(e) {
+		gameSocket.send(JSON.stringify({
+			'join': 'Joined game'
+		}))
 	}
 
-	// const game = () => {
-	// 	socket.emit('game', {
-	// 		aY: paddleAy,//
-	// 		bY: paddleBy
-	// 	});
-	// };
+	gameSocket.onmessage = function(e){
+		let data = JSON.parse(e.data)
+		console.log('Data:', data)
+		if(player === 'B')
+			paddleAy = data.data.aY; //dont receive myself, only if i'm player B
+		else
+			paddleBy = data.data.bY;
+		//ball.x = data.data.ballX;
+		//ball.y = data.data.ballY;
+		goToPosition(data.data.ballX, data.data.ballY)
+		ball.radians = data.data.ballRad;
+		ball.velocity = data.data.ballVelocity;
+		scoreA = data.data.scoreA;
+		scoreB = data.data.scoreB;
+		if(scoreA > 10 || scoreB > 10) {
+				scoreA = 0;
+				scoreB = 0;
+		}
+		updateElementPosition();
+	}
 
-	// onMount(() => {
-	// 	socket.emit('join', 'User has joined the game');
-	// });
+	const game = () => {
+		if (gameSocket.readyState === WebSocket.OPEN) {
+			gameSocket.send(JSON.stringify({
+				aY: paddleAy,
+				bY: paddleBy,
+			}))
+		}
+	};
 
 	function playAudio(name) {
 		// const audio = document.getElementById(name);
@@ -148,7 +156,7 @@
 
 	async function gameloop() {
 		while(1) {
-			// game()
+			game()
 			addPosition(ball.x, ball.y);
 			soundByPosition();
 			await sleep(framerate);
@@ -203,9 +211,11 @@
 	// Attach keydown and keyup event listeners to the document
 	document.addEventListener('keydown', handleKeyDown);
 	document.addEventListener('keyup', handleKeyUp);
+
 	document.addEventListener('DOMContentLoaded', function() {
+		console.log(aY)
     	updateElementPosition();
-	});
+    });
 
 	function updateElementPosition() {
 		let element = document.getElementById('paddleA'); // Replace with your element's actual ID
@@ -217,6 +227,20 @@
 		element = document.getElementById('ball'); // Replace with your element's actual ID
 		element.style.top = `${ball.y}px`;
 		element.style.left = `${ball.x}px`;
+		element = document.getElementById('scoreA'); // Replace with your element's actual ID
+		element.innerHTML = `${scoreA}`;
+		element = document.getElementById('scoreB'); // Replace with your element's actual ID
+		element.innerHTML = `${scoreB}`;
+		element = document.getElementById('tail'); // Replace with your element's actual ID
+		ballPositionHistory.forEach((item, index) => {
+			//const ballElement = document.createElement('div');
+			
+			//ballElement.className = 'ball';
+			//ballElement.style.top = `${item.y - 480}px`;
+			//ballElement.style.left = `${item.x - 890}px`;
+			//ballElement.style.opacity = '0.1';
+			//element.appendChild(ballElement);
+		});
 	}
 </script>
 
