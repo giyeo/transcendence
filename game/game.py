@@ -12,6 +12,7 @@ middleY = 300 + 10
 #garanta que só bata 1 vez a bola por paddle
 def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn):
 	
+	sound = "none"
 	#bot
 	if(ballY >= 570):
 		bY = 520
@@ -33,6 +34,8 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 			ballX = aX + 20
 		ballY = middleY
 		ballVelocity = 5
+		sound = "score"
+
 	#hit paddle A
 	if (turn == 'a' and (ballY > aY and ballY < aY + paddleSize) 
 	and (ballX > aX - 20 and ballX < aX + 20) ):
@@ -45,6 +48,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		if(ballVelocity < 10):
 			ballVelocity += 0.25
 		turn = 'b'
+		sound = "paddle"
 	#hit paddle B
 	if (turn == 'b' and (ballY > bY and ballY < bY + paddleSize)
 	and (ballX > bX - 20 and ballX < bX + 20)):
@@ -57,9 +61,12 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		if(ballVelocity < 10):
 			ballVelocity += 0.25
 		turn = 'a'
+		sound = "paddle"
+	
 	#hit wall
 	if (ballY <= topWall or ballY >= botWall):
 		ballRad = -ballRad
+		sound = "wall"
 
 	return ({
 		'aY':aY,
@@ -70,5 +77,6 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		'ballVelocity':ballVelocity,
 		'scoreA':scoreA,
 		'scoreB':scoreB,
-		'turn':turn
+		'turn':turn,
+		'sound':sound
 	})

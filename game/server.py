@@ -35,6 +35,7 @@ def gameloop(sid, data):
         gamedata[sid]['scoreA'] = 0
         gamedata[sid]['scoreB'] = 0
         gamedata[sid]['turn'] = 'b'
+        gamedata[sid]['sound'] = 'none'
     else:
         gamedata[sid]['aY'] = data['aY']
         gamedata[sid]['bY'] = data['bY']

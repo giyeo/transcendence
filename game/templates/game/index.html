@@ -27,7 +27,7 @@
 </html>
 
 <script lang="js">
-	let framerate = 16; //16 = 60fps
+	let framerate = 12; //16 = 60fps
 	let player = 'A'
 	let leftShift = 400;
 	let scoreA = 0;
@@ -36,17 +36,12 @@
 	let paddleBx = leftShift + 745;
 	let paddleAy = 20 + 300 - 50;
 	let paddleBy = 20 + 300 - 50;
-	let paddleSize = 100;
-	let topWall = 20;
-	let botWall = 600;
-	let resetx = 400 - 10 + leftShift
-	let resety = 300 + 10
 	var ball = {
-			x: resetx,
-			y: resety,
-			radians: 0,
-			velocity: 5
-		};
+		x: 0,
+		y: 0,
+		radians: 0,
+		velocity: 0
+	};
 	
 	async function goToPosition(newX, newY) {//interpolation, adding frames between
 		var oldX = ball.x;
@@ -88,6 +83,8 @@
 		ball.velocity = data.data.ballVelocity;
 		scoreA = data.data.scoreA;
 		scoreB = data.data.scoreB;
+		if(data.data.sound != "none")
+			playAudio(data.data.sound);
 		if(scoreA > 10 || scoreB > 10) {
 				scoreA = 0;
 				scoreB = 0;
@@ -138,22 +135,6 @@
 		container.appendChild(ballElement);
 	}
 
-	function soundByPosition() {
-		if (ball.x < leftShift || ball.x > leftShift + 800)
-			playAudio("score");
-
-		if ( (ball.y > paddleAy && ball.y < paddleAy + paddleSize ) 
-		&& (ball.x > paddleAx - 10 && ball.x < paddleAx + 20))
-			playAudio("paddle");
-	
-		if ( (ball.y > paddleBy && ball.y < paddleBy + paddleSize ) 
-		&& (ball.x > paddleBx - 20 && ball.x < paddleBx + 10))
-			playAudio("paddle");
-
-		if (ball.y <= topWall || ball.y >= botWall)
-			playAudio("wall");
-	}
-
 	function sleep(ms) {
 		return new Promise(resolve => setTimeout(resolve, ms));
 	}
@@ -161,7 +142,7 @@
 	async function gameloop() {
 		while(1) {
 			game()
-			soundByPosition();
+			// soundByPosition();
 			addPosition(ball.x, ball.y);
 			await sleep(framerate);
 		}
@@ -182,7 +163,7 @@
 					paddleAy += 10; // Move rectangle 2 downward
 					// paddleBy += 10;
 				}
-				updateElementPosition();
+				clientUpdateElementPosition();
 			}, 16); // Adjust the interval as needed for desired speed
 		}
 	}
@@ -211,24 +192,36 @@
 	document.addEventListener('keyup', handleKeyUp);
 
 	document.addEventListener('DOMContentLoaded', function() {
-		console.log(aY)
     	updateElementPosition();
     });
 
+	function clientUpdateElementPosition() {
+		if(player == 'A') {
+			let element = document.getElementById('paddleA');
+			element.style.top = `${paddleAy}px`;
+			element.style.left = `${paddleAx}px`;
+		}
+		else {
+			element = document.getElementById('paddleB');
+			element.style.top = `${paddleBy}px`;
+			element.style.left = `${paddleBx}px`;
+		}
+	}
+
 	function updateElementPosition() {
-		let element = document.getElementById('paddleA'); // Replace with your element's actual ID
+		let element = document.getElementById('paddleA');
 		element.style.top = `${paddleAy}px`;
 		element.style.left = `${paddleAx}px`;
-		element = document.getElementById('paddleB'); // Replace with your element's actual ID
+		element = document.getElementById('paddleB');
 		element.style.top = `${paddleBy}px`;
 		element.style.left = `${paddleBx}px`;
-		element = document.getElementById('ball'); // Replace with your element's actual ID
+		element = document.getElementById('ball');
 		element.style.top = `${ball.y}px`;
 		element.style.left = `${ball.x}px`;
-		element = document.getElementById('scoreA'); // Replace with your element's actual ID
+		element = document.getElementById('scoreA');
 		element.innerHTML = `${scoreA}`;
-		element = document.getElementById('scoreB'); // Replace with your element's actual ID
+		element = document.getElementById('scoreB');
 		element.innerHTML = `${scoreB}`;
-		element = document.getElementById('tail'); // Replace with your element's actual ID
+		element = document.getElementById('tail');
 	}
 </script>
