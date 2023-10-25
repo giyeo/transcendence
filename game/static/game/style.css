@@ -5,6 +5,7 @@ body {
     height: 100vh;
     margin: 0;
 	background-color: grey;
+	font-family: 'Press Start 2P', cursive;
 }
 
 .paddle {
@@ -78,4 +79,17 @@ body {
 	background: #fff;
 	padding: 10px;
 	border-radius: 5px;
-} 
+}
+
+button {
+    font-family: 'Press Start 2P', cursive;
+}
+
+#start-button {
+    background-color: black;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
