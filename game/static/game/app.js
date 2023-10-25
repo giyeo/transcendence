@@ -92,16 +92,13 @@ let gameSocket;
 
 startButton.addEventListener('click', () => {
     if (!gameSocket) {
-        gameSocket = new WebSocket(url); // Replace with your WebSocket server URL
-        gameSocket.addEventListener('open', () => {
-            console.log('WebSocket connected');
-            startGame();
-        });
+		startGame();
     }
 });
 
 function startGame() {
 	const overlay = document.getElementById('overlay');
+	gameSocket = new WebSocket(url);
 	// Show the overlay while waiting for the WebSocket to open
 	if (gameSocket.readyState !== WebSocket.OPEN) {
 		overlay.style.display = 'block';
@@ -109,6 +106,7 @@ function startGame() {
 
 	gameSocket.onopen = function(e) {
 		overlay.style.display = 'none';
+		console.log('WebSocket connected');
 	}
 	
 	gameSocket.onmessage = function(e){
