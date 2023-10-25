@@ -49,6 +49,14 @@ body {
 	position: absolute;
 }
 
+.countDown {
+	font-family: 'Press Start 2P', cursive;
+	font-size: 100px;
+	color: white;
+	position: absolute;
+	background-color: gray;
+}
+
 #overlay {
 	display: none;
 	position: fixed;
@@ -56,7 +64,8 @@ body {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */ 
+	background: rgba(0, 0, 0, 1); /* Semi-transparent background */
+	z-index: 1000;
 	text-align: center;
 } 
 

@@ -107,6 +107,7 @@ function startGame() {
 	gameSocket.onopen = function(e) {
 		overlay.style.display = 'none';
 		console.log('WebSocket connected');
+		countDown();
 	}
 	
 	gameSocket.onmessage = function(e){
@@ -129,6 +130,7 @@ function startGame() {
 				scoreB = 0;
 		}
 		updateElementPosition();
+		addPosition(ball.x, ball.y);
 	}
 	
 	const game = () => {
@@ -141,17 +143,27 @@ function startGame() {
 	};
 	
 	//__________________________GAMELOOP_BEGIN____________________________
-	
+	async function countDown() {
+		let element = document.getElementById('countDown');
+		let count = 3;
+		while(count > 0) {
+			element.innerHTML = `${count}`;
+			await sleep(1000);
+			count--;
+		}
+		element.innerHTML = `GO!`;
+		element.setAttribute('style', 'left: 690px; top: 280px');
+		await sleep(1000);
+		element.setAttribute('style', 'display: none');
+		gameloop();
+	}
+
 	async function gameloop() {
 		while(1) {
 			game()
-			// soundByPosition();
-			addPosition(ball.x, ball.y);
 			await sleep(framerate);
 		}
 	}
-	gameloop();
-
 }
 
 //____________________________INPUT_BEGIN____________________________
