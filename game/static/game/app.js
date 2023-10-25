@@ -102,6 +102,7 @@ startButton.addEventListener('click', () => {
 function startGame() {
 	const overlay = document.getElementById('overlay');
 	gameSocket = new WebSocket(url);
+	console.log("gameSocket: ", gameSocket);
 	// Show the overlay while waiting for the WebSocket to open
 	if (gameSocket.readyState !== WebSocket.OPEN) {
 		overlay.style.display = 'block';
@@ -111,6 +112,22 @@ function startGame() {
 		overlay.style.display = 'none';
 		console.log('WebSocket connected');
 		countDown();
+	}
+
+	gameSocket.onclose = async function(e) {
+		let element = document.getElementById('countDown');
+		element.setAttribute('style', 'display: block; left: 320px; top: 280px');
+		element.innerHTML = `Game Over!`;
+		await sleep(1000);
+		document.getElementById("show-game").style.display = "block";
+		document.getElementById("game").style.display = "none";
+		element.setAttribute('style', 'display: block; left: 760px; top: 280px');
+		container.innerHTML = '';
+		ballPositionHistory = [];
+		gameSocket = null;
+		scored = false;
+		console.log('WebSocket closed');
+		// updateElementPosition();
 	}
 	
 	gameSocket.onmessage = function(e){
@@ -128,16 +145,17 @@ function startGame() {
 		scoreB = data.data.scoreB;
 		if(data.data.sound != "none")
 			playAudio(data.data.sound);
-		if(scoreA > 10 || scoreB > 10) {
+		if(scoreA > 1 || scoreB > 1) {
 				scoreA = 0;
 				scoreB = 0;
+				gameSocket.close();
 		}
 		updateElementPosition();
 		addPosition(ball.x, ball.y);
 	}
 	
 	const game = () => {
-		if (gameSocket.readyState === WebSocket.OPEN) {
+		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
 			gameSocket.send(JSON.stringify({
 				aY: paddleAy,
 				bY: paddleBy,
@@ -147,8 +165,9 @@ function startGame() {
 	
 	//__________________________GAMELOOP_BEGIN____________________________
 	async function countDown() {
+		game();
 		let element = document.getElementById('countDown');
-		let count = 1;
+		let count = 3;
 		while(count > 0) {
 			element.innerHTML = `${count}`;
 			await sleep(1000);
@@ -164,6 +183,8 @@ function startGame() {
 	async function gameloop() {
 		ready = true;
 		while(1) {
+			if(!gameSocket)
+				return ;
 			if(scored == true) {
 				scored = false;
 				ready = false;
