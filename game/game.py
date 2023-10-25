@@ -1,4 +1,5 @@
 import math
+import random
 
 leftShift = 400
 aX = leftShift + 35
@@ -11,7 +12,7 @@ middleY = 300 + 10
 
 #garanta que só bata 1 vez a bola por paddle
 def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn):
-	
+	#random between 0 and 10 
 	
 	sound = "none"
 	#bot
@@ -42,9 +43,9 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 	and (ballY > aY - 20 and ballY < aY + paddleSize)
 	and (ballX > aX - 20 and ballX < aX + 20) ):
 		if(ballY > aY + 75):
-			ballRad = math.radians(60)
+			ballRad = math.radians(60 - random.randint(0, 30))
 		elif (ballY < aY + 25):
-			ballRad = math.radians(300)
+			ballRad = math.radians(300 + random.randint(0, 30))
 		else:
 			ballRad = math.radians(180) - ballRad
 		if(ballVelocity < 10):
