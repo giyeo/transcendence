@@ -4,7 +4,7 @@
 //enviamos o Ay e By, são os valores inicias da posição do paddle
 
 //basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
-
+let ready = false;
 let framerate = 12; //16 = 60fps
 let player = 'A'
 let leftShift = 400;
@@ -159,6 +159,7 @@ function startGame() {
 	}
 
 	async function gameloop() {
+		ready = true;
 		while(1) {
 			game()
 			await sleep(framerate);
@@ -191,6 +192,8 @@ function stopContinuousMove() {
 
 // Handle keydown and keyup events
 function handleKeyDown(event) {
+	if(ready == false)
+		return;
 	if (event.key === 'ArrowUp') {
 		startContinuousMove('up');
 	} else if (event.key === 'ArrowDown') {
@@ -209,7 +212,7 @@ document.addEventListener('keyup', handleKeyUp);
 
 //____________________________UPDATE_CSS_BEGIN____________________________
 document.addEventListener('DOMContentLoaded', function() {
-	updateElementPosition();
+	initialUpdateElementPosition();
 });
 
 function clientUpdateElementPosition() {
@@ -225,7 +228,7 @@ function clientUpdateElementPosition() {
 	}
 }
 
-function updateElementPosition() {
+function initialUpdateElementPosition() {
 	let element = document.getElementById('paddleA');
 	element.style.top = `${paddleAy}px`;
 	element.style.left = `${paddleAx}px`;
@@ -235,9 +238,40 @@ function updateElementPosition() {
 	element = document.getElementById('ball');
 	element.style.top = `${ball.y}px`;
 	element.style.left = `${ball.x}px`;
+	element = document.getElementById('horizontalWallLeft');
+	element.style.top = `${0}px`;
+	element.style.left = `${leftShift}px`;
+	element = document.getElementById('horizontalWallMid');
+	element.style.top = `${310}px`;
+	element.style.left = `${leftShift}px`;
+	element.style.backgroundColor = "rgba(200,200,200,0.2)";
+	element = document.getElementById('horizontalWallRight');
+	element.style.top = `${620}px`;
+	element.style.left = `${leftShift}px`;
+	element = document.getElementById('verticalWall');
+	element.style.top = `${20}px`;
+	element.style.left = `${leftShift + 390}px`;
+	element = document.getElementById('scoreA');
+	element.style.top = `${60}px`;
+	element.style.left = `${leftShift + 250}px`;
+	element = document.getElementById('scoreB');
+	element.style.top = `${60}px`;
+	element.style.left = `${leftShift + 460}px`;
+	element = document.getElementById('countDown');
+	element.style.top = `${280}px`;
+	element.style.left = `${leftShift + 360}px`;
+}
+
+function updateElementPosition() {
+	let element = document.getElementById('paddleA');
+	element.style.top = `${paddleAy}px`;
+	element = document.getElementById('paddleB');
+	element.style.top = `${paddleBy}px`;
+	element = document.getElementById('ball');
+	element.style.top = `${ball.y}px`;
+	element.style.left = `${ball.x}px`;
 	element = document.getElementById('scoreA');
 	element.innerHTML = `${scoreA}`;
 	element = document.getElementById('scoreB');
 	element.innerHTML = `${scoreB}`;
-	element = document.getElementById('tail');
 }
