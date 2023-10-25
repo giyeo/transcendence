@@ -15,5 +15,6 @@ git clone git@github.com:giyeo/transcendence.git && cd transcendece
 
 3. Init local environment
 
+aot install python3.11-venv
 python3.11 -m venv env
 source ./env/bin/activate

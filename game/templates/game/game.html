@@ -1,0 +1,43 @@
+{% load static %}
+
+<div id="overlay">
+	<div id="message">Waiting for other players...</div>
+</div>
+
+<div id="paddleA"	class="paddle"></div>
+<div id="paddleB"	class="paddle"></div>
+<div id="ball"		class="ball"></div>
+<div id="tail">	</div>
+<div id="horizontalWallLeft"	class="horizontalWall"	style="top: 0px;		left: 400px;"></div>
+<div id="horizontalWallRight"	class="horizontalWall"	style="top: 310px;		left: 400px; background-color: rgba(200,200,200,0.2);"></div>
+<div id="horizontalWallMid"		class="horizontalWall"	style="top: 620px;		left: 400px;"></div>
+<div id="verticalWall"			class="verticalWall"	style="top: 20px;		left: 790px;"></div>
+<div id="scoreA"				class="score"			style="top: 60px;		left: 650px;">0</div>
+<div id="scoreB"				class="score"			style="top: 60px;		left: 860px;">0</div>
+
+<audio id="paddle" src="{% static 'game/paddle.mp3' %}"></audio>
+<audio id="wall" src="{% static 'game/wall.mp3' %}"></audio>
+<audio id="score" src="{% static 'game/score.mp3' %}"></audio>
+
+<style>
+#overlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+	text-align: center;
+}
+
+#message {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: #fff;
+	padding: 10px;
+	border-radius: 5px;
+}
+</style>
