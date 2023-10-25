@@ -148,7 +148,7 @@ function startGame() {
 	//__________________________GAMELOOP_BEGIN____________________________
 	async function countDown() {
 		let element = document.getElementById('countDown');
-		let count = 3;
+		let count = 1;
 		while(count > 0) {
 			element.innerHTML = `${count}`;
 			await sleep(1000);
