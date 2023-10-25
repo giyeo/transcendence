@@ -12,6 +12,8 @@ middleY = 300 + 10
 #garanta que só bata 1 vez a bola por paddle
 def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn):
 	
+	ballRadius = 10
+	ballRadiusAndHalfPaddleWidth = 20
 	sound = "none"
 	#bot
 	if(ballY >= 570):
@@ -38,8 +40,8 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 
 	#hit paddle A
 	if (turn == 'a'
-	and (ballY > aY and ballY < aY + paddleSize) 
-	and (ballX > aX - 20 and ballX < aX + 20) ):
+	and (ballY > aY - ballRadius and ballY < aY + paddleSize + ballRadius)
+	and (ballX > aX - ballRadiusAndHalfPaddleWidth and ballX < aX + ballRadiusAndHalfPaddleWidth) ):
 		if(ballY > aY + 75):
 			ballRad = math.radians(60)
 		elif (ballY < aY + 25):
@@ -52,8 +54,8 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		sound = "paddle"
 	#hit paddle B
 	if (turn == 'b'
-	and (ballY > bY and ballY < bY + paddleSize)
-	and (ballX > bX - 20 and ballX < bX + 20) ):
+	and (ballY > bY - ballRadius and ballY < bY + paddleSize + ballRadius)
+	and (ballX > bX - ballRadiusAndHalfPaddleWidth and ballX < bX + ballRadiusAndHalfPaddleWidth) ):
 		if(ballY > bY + 75):
 			ballRad = math.radians(150)
 		elif (ballY < bY + 25):
