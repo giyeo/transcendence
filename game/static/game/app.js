@@ -16,6 +16,7 @@ let paddleAy = 20 + 300 - 50;
 let paddleBy = 20 + 300 - 50;
 
 //Apenas seguram valores e setam inicialmente
+let scored = false;
 let scoreA = 0;
 let scoreB = 0;
 var ball = {
@@ -28,6 +29,8 @@ var ball = {
 //____________________________UTILS_BEGIN____________________________
 function playAudio(name) {
 	const audio = document.getElementById(name);
+	if(name == "score")
+		scored = true;
 	audio.play();
   }
 
@@ -161,6 +164,12 @@ function startGame() {
 	async function gameloop() {
 		ready = true;
 		while(1) {
+			if(scored == true) {
+				scored = false;
+				ready = false;
+				await sleep(1000);
+				ready = true;
+			}
 			game()
 			await sleep(framerate);
 		}
@@ -170,6 +179,10 @@ function startGame() {
 //____________________________INPUT_BEGIN____________________________
 let keyDownInterval = null;
 let isKeyDown = false; // Flag to track key press
+// Attach keydown and keyup event listeners to the document
+document.addEventListener('keydown', handleKeyDown);
+document.addEventListener('keyup', handleKeyUp);
+
 function startContinuousMove(direction) {
 	if (!isKeyDown) {
 		isKeyDown = true;
@@ -206,9 +219,6 @@ function handleKeyUp(event) {
 		stopContinuousMove();
 	}
 }
-// Attach keydown and keyup event listeners to the document
-document.addEventListener('keydown', handleKeyDown);
-document.addEventListener('keyup', handleKeyUp);
 
 //____________________________UPDATE_CSS_BEGIN____________________________
 document.addEventListener('DOMContentLoaded', function() {
