@@ -148,6 +148,7 @@ async function countDown() {
 	element.setAttribute('style', 'left: 690px; top: 280px');
 	await sleep(1000);
 	element.setAttribute('style', 'display: none');
+	gameLoop();
 }
 
 class sendWebSocket {
@@ -206,7 +207,6 @@ function startGame() {
 	startEventListeners();
 	setupGame();
 	countDown();
-	gameLoop();
 }
 
 //____________________________INPUT_BEGIN____________________________
