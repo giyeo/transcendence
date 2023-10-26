@@ -31,7 +31,7 @@ function playAudio(name) {
 	const audio = document.getElementById(name);
 	if(name == "score")
 		scored = true;
-	//audio.volume = 0;
+	audio.volume = 0.1;
 	audio.play();
   }
 
@@ -132,7 +132,6 @@ async function onCloseWebSocket() {
 	gameSocket = null;
 	scored = false;
 	console.log('WebSocket closed');
-	// updateElementPosition();
 }
 
 async function countDown() {
@@ -148,7 +147,6 @@ async function countDown() {
 	element.setAttribute('style', 'left: 690px; top: 280px');
 	await sleep(1000);
 	element.setAttribute('style', 'display: none');
-	gameLoop();
 }
 
 class sendWebSocket {
@@ -202,11 +200,12 @@ function startEventListeners() {
 	document.addEventListener('keyup', handleKeyUp);
 }
 
-function startGame() {
+async function startGame() {
 	startWebSockets();
 	startEventListeners();
 	setupGame();
-	countDown();
+	await countDown();
+	gameLoop();
 }
 
 //____________________________INPUT_BEGIN____________________________

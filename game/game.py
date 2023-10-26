@@ -48,7 +48,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 			ballRad = math.radians(300 + random.randint(0, 30))
 		else:
 			ballRad = math.radians(180) - ballRad
-		if(ballVelocity < 10):
+		if(ballVelocity < 20):
 			ballVelocity += 0.25
 		turn = 'b'
 		sound = "paddle"
@@ -62,7 +62,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 			ballRad = math.radians(225)
 		else:
 			ballRad = math.radians(180) - ballRad
-		if(ballVelocity < 10):
+		if(ballVelocity < 20):
 			ballVelocity += 0.25
 		turn = 'a'
 		sound = "paddle"
