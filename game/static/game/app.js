@@ -31,6 +31,7 @@ function playAudio(name) {
 	const audio = document.getElementById(name);
 	if(name == "score")
 		scored = true;
+	//audio.volume = 0;
 	audio.play();
   }
 
@@ -45,11 +46,11 @@ async function goToPosition(newX, newY) {
 	var oldY = ball.y;
 	var DLSS = 4;
 	var i = 0
-	if(Math.abs(newX-oldX) < 300 ) {
+	if (Math.abs(newX - oldX) < 300 ) {
 		while(i < DLSS) {
-			ball.x += ((newX - oldX) / DLSS );
-			ball.y += ((newY - oldY) / DLSS );
-			await sleep(framerate / DLSS );
+			ball.x += ((newX - oldX) / DLSS);
+			ball.y += ((newY - oldY) / DLSS);
+			await sleep(framerate / DLSS);
 			i++;
 		}
 	}
@@ -86,123 +87,144 @@ function addPosition(x, y) {
 	// Append the new <div> element to the container
 	container.appendChild(ballElement);
 }
-//____________________________SOCKET_BEGIN____________________________
 
-let url = `ws://${window.location.host}/ws/socket-server/`
+const loadingScreen = document.getElementById('loadingScreen');
 
-const startButton = document.getElementById('start-button');
-let gameSocket;
+function onOpenWebSocket(e) {
+	loadingScreen.style.display = 'none';
+	console.log('WebSocket connected');
+}
 
-startButton.addEventListener('click', () => {
-    if (!gameSocket) {
-		startGame();
-    }
-});
-
-function startGame() {
-	const overlay = document.getElementById('overlay');
-	gameSocket = new WebSocket(url);
-	console.log("gameSocket: ", gameSocket);
-	// Show the overlay while waiting for the WebSocket to open
-	if (gameSocket.readyState !== WebSocket.OPEN) {
-		overlay.style.display = 'block';
+function onMessageWebSocket(e) {
+	let data = JSON.parse(e.data)
+	if(player === 'B')
+		paddleAy = data.data.aY; //dont receive myself, only if i'm player B
+	else
+		paddleBy = data.data.bY;
+	//ball.x = data.data.ballX;
+	//ball.y = data.data.ballY;
+	goToPosition(data.data.ballX, data.data.ballY)
+	ball.radians = data.data.ballRad;
+	ball.velocity = data.data.ballVelocity;
+	scoreA = data.data.scoreA;
+	scoreB = data.data.scoreB;
+	if(data.data.sound != "none")
+		playAudio(data.data.sound);
+	if(scoreA > 1 || scoreB > 1) {
+			scoreA = 0;
+			scoreB = 0;
+			gameSocket.close();
 	}
+	drawGame();
+	addPosition(ball.x, ball.y);
+}
 
-	gameSocket.onopen = function(e) {
-		overlay.style.display = 'none';
-		console.log('WebSocket connected');
-		countDown();
-	}
+async function onCloseWebSocket() {
+	let element = document.getElementById('countDown');
+	element.setAttribute('style', 'display: block; left: 320px; top: 280px');
+	element.innerHTML = `Game Over!`;
+	await sleep(1000);
+	document.getElementById("menu").style.display = "block";
+	document.getElementById("game").style.display = "none";
+	element.setAttribute('style', 'display: block; left: 760px; top: 280px');
+	container.innerHTML = '';
+	ballPositionHistory = [];
+	gameSocket = null;
+	scored = false;
+	console.log('WebSocket closed');
+	// updateElementPosition();
+}
 
-	gameSocket.onclose = async function(e) {
-		let element = document.getElementById('countDown');
-		element.setAttribute('style', 'display: block; left: 320px; top: 280px');
-		element.innerHTML = `Game Over!`;
+async function countDown() {
+	sendWebSocket.sendPaddlePosition();
+	let element = document.getElementById('countDown');
+	let count = 3;
+	while(count > 0) {
+		element.innerHTML = `${count}`;
 		await sleep(1000);
-		document.getElementById("show-game").style.display = "block";
-		document.getElementById("game").style.display = "none";
-		element.setAttribute('style', 'display: block; left: 760px; top: 280px');
-		container.innerHTML = '';
-		ballPositionHistory = [];
-		gameSocket = null;
-		scored = false;
-		console.log('WebSocket closed');
-		// updateElementPosition();
+		count--;
 	}
-	
-	gameSocket.onmessage = function(e){
-		let data = JSON.parse(e.data)
-		if(player === 'B')
-			paddleAy = data.data.aY; //dont receive myself, only if i'm player B
-		else
-			paddleBy = data.data.bY;
-		//ball.x = data.data.ballX;
-		//ball.y = data.data.ballY;
-		goToPosition(data.data.ballX, data.data.ballY)
-		ball.radians = data.data.ballRad;
-		ball.velocity = data.data.ballVelocity;
-		scoreA = data.data.scoreA;
-		scoreB = data.data.scoreB;
-		if(data.data.sound != "none")
-			playAudio(data.data.sound);
-		if(scoreA > 1 || scoreB > 1) {
-				scoreA = 0;
-				scoreB = 0;
-				gameSocket.close();
-		}
-		updateElementPosition();
-		addPosition(ball.x, ball.y);
-	}
-	
-	const game = () => {
+	element.innerHTML = `GO!`;
+	element.setAttribute('style', 'left: 690px; top: 280px');
+	await sleep(1000);
+	element.setAttribute('style', 'display: none');
+}
+
+class sendWebSocket {
+	static sendPaddlePosition() {
 		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
 			gameSocket.send(JSON.stringify({
 				aY: paddleAy,
 				bY: paddleBy,
-			}))
+			}));
 		}
-	};
-	
-	//__________________________GAMELOOP_BEGIN____________________________
-	async function countDown() {
-		game();
-		let element = document.getElementById('countDown');
-		let count = 3;
-		while(count > 0) {
-			element.innerHTML = `${count}`;
-			await sleep(1000);
-			count--;
-		}
-		element.innerHTML = `GO!`;
-		element.setAttribute('style', 'left: 690px; top: 280px');
-		await sleep(1000);
-		element.setAttribute('style', 'display: none');
-		gameloop();
 	}
+}
 
-	async function gameloop() {
-		ready = true;
-		while(1) {
-			if(!gameSocket)
-				return ;
-			if(scored == true) {
-				scored = false;
-				ready = false;
-				await sleep(1000);
-				ready = true;
-			}
-			game()
-			await sleep(framerate);
+async function gameLoop() {
+	ready = true;
+	while(1) {
+		if(!gameSocket)
+			return ;
+		if (gameSocket.readyState !== WebSocket.OPEN) {
+			await sleep(100);
+			continue;
 		}
+		if(scored == true) {
+			scored = false;
+			removeEventListener('keydown', handleKeyDown);
+			await sleep(1000);
+			ready = true;
+		}
+		sendWebSocket.sendPaddlePosition();
+		await sleep(framerate);
 	}
+}
+
+let gameSocket;
+
+function startWebSockets() {
+	let url = `ws://${window.location.host}/ws/socket-server/`
+	gameSocket = new WebSocket(url);
+	console.log("gameSocket: ", gameSocket);
+	// Show the loadingScreen while waiting for the WebSocket to open
+	if (gameSocket.readyState !== WebSocket.OPEN) {
+		loadingScreen.style.display = 'block';
+	}
+}
+
+function startEventListeners() {
+	gameSocket.addEventListener('open', onOpenWebSocket);
+	gameSocket.addEventListener('message', onMessageWebSocket);
+	gameSocket.addEventListener('close', onCloseWebSocket);
+	document.addEventListener('keydown', handleKeyDown);
+	document.addEventListener('keyup', handleKeyUp);
+}
+
+function startGame() {
+	startWebSockets();
+	startEventListeners();
+	setupGame();
+	countDown();
+	gameLoop();
 }
 
 //____________________________INPUT_BEGIN____________________________
 let keyDownInterval = null;
 let isKeyDown = false; // Flag to track key press
 // Attach keydown and keyup event listeners to the document
-document.addEventListener('keydown', handleKeyDown);
-document.addEventListener('keyup', handleKeyUp);
+
+
+function stopContinuousMove() {
+	clearInterval(keyDownInterval);
+	isKeyDown = false; // Reset the flag
+}
+
+function handleKeyUp(event) {
+	if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+		stopContinuousMove();
+	}
+}
 
 function startContinuousMove(direction) {
 	if (!isKeyDown) {
@@ -219,11 +241,6 @@ function startContinuousMove(direction) {
 	}
 }
 
-function stopContinuousMove() {
-	clearInterval(keyDownInterval);
-	isKeyDown = false; // Reset the flag
-}
-
 // Handle keydown and keyup events
 function handleKeyDown(event) {
 	if(ready == false)
@@ -235,73 +252,88 @@ function handleKeyDown(event) {
 	}
 }
 
-function handleKeyUp(event) {
-	if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-		stopContinuousMove();
+function setupGame() {
+	let elementPositions = [
+		{
+			top: paddleAy,
+			left: paddleAx,
+			element: document.getElementById('paddleA')
+		},
+		{
+			top: paddleBy,
+			left: paddleBx,
+			element: document.getElementById('paddleB')
+		},
+		{
+			top: ball.y,
+			left: ball.x,
+			element: document.getElementById('ball')
+		},
+		{
+			top: 0,
+			left: leftShift,
+			element: document.getElementById('horizontalWallLeft')
+		},
+		{
+			top: 310,
+			left: leftShift,
+			element: document.getElementById('horizontalWallMid')
+		},
+		{
+			top: 620,
+			left: leftShift,
+			element: document.getElementById('horizontalWallRight')
+		},
+		{
+			top: 20,
+			left: leftShift + 390,
+			element: document.getElementById('verticalWall')
+		},
+		{
+			top: 60,
+			left: leftShift + 250,
+			element: document.getElementById('scoreA')
+		},
+		{
+			top: 60,
+			left: leftShift + 460,
+			element: document.getElementById('scoreB')
+		},
+		{
+			top: 280,
+			left: leftShift + 360,
+			element: document.getElementById('countDown')
+		}
+	]
+	for (let elementPosition of elementPositions) {
+		elementPosition.element.style.top = `${elementPosition.top}px`;
+		elementPosition.element.style.left = `${elementPosition.left}px`;
 	}
 }
 
-//____________________________UPDATE_CSS_BEGIN____________________________
-document.addEventListener('DOMContentLoaded', function() {
-	initialUpdateElementPosition();
-});
-
-function clientUpdateElementPosition() {
-	if(player == 'A') {
-		let element = document.getElementById('paddleA');
-		element.style.top = `${paddleAy}px`;
-		element.style.left = `${paddleAx}px`;
+function drawGame() {
+	elementPositions = [
+		{
+			top: paddleAy,
+			left: paddleAx,
+			element: document.getElementById('paddleA')
+		},
+		{
+			top: paddleBy,
+			left: paddleBx,
+			element: document.getElementById('paddleB')
+		},
+		{
+			top: ball.y,
+			left: ball.x,
+			element: document.getElementById('ball')
+		},
+	]
+	for (let elementPosition of elementPositions) {
+		elementPosition.element.style.top = `${elementPosition.top}px`;
+		elementPosition.element.style.left = `${elementPosition.left}px`;
 	}
-	else {
-		element = document.getElementById('paddleB');
-		element.style.top = `${paddleBy}px`;
-		element.style.left = `${paddleBx}px`;
-	}
-}
-
-function initialUpdateElementPosition() {
-	let element = document.getElementById('paddleA');
-	element.style.top = `${paddleAy}px`;
-	element.style.left = `${paddleAx}px`;
-	element = document.getElementById('paddleB');
-	element.style.top = `${paddleBy}px`;
-	element.style.left = `${paddleBx}px`;
-	element = document.getElementById('ball');
-	element.style.top = `${ball.y}px`;
-	element.style.left = `${ball.x}px`;
-	element = document.getElementById('horizontalWallLeft');
-	element.style.top = `${0}px`;
-	element.style.left = `${leftShift}px`;
-	element = document.getElementById('horizontalWallMid');
-	element.style.top = `${310}px`;
-	element.style.left = `${leftShift}px`;
-	element.style.backgroundColor = "rgba(200,200,200,0.2)";
-	element = document.getElementById('horizontalWallRight');
-	element.style.top = `${620}px`;
-	element.style.left = `${leftShift}px`;
-	element = document.getElementById('verticalWall');
-	element.style.top = `${20}px`;
-	element.style.left = `${leftShift + 390}px`;
-	element = document.getElementById('scoreA');
-	element.style.top = `${60}px`;
-	element.style.left = `${leftShift + 250}px`;
-	element = document.getElementById('scoreB');
-	element.style.top = `${60}px`;
-	element.style.left = `${leftShift + 460}px`;
-	element = document.getElementById('countDown');
-	element.style.top = `${280}px`;
-	element.style.left = `${leftShift + 360}px`;
-}
-
-function updateElementPosition() {
-	let element = document.getElementById('paddleA');
-	element.style.top = `${paddleAy}px`;
-	element = document.getElementById('paddleB');
-	element.style.top = `${paddleBy}px`;
-	element = document.getElementById('ball');
-	element.style.top = `${ball.y}px`;
-	element.style.left = `${ball.x}px`;
-	element = document.getElementById('scoreA');
+	let element = document.getElementById('scoreA');
 	element.innerHTML = `${scoreA}`;
 	element = document.getElementById('scoreB');
 	element.innerHTML = `${scoreB}`;

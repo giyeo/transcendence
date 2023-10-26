@@ -12,11 +12,10 @@
 </head>
 <body>
 	<!-- Wait click on button start game to start game  -->
-	<div id="show-game">
-		<button id="start-button" onclick="showGame()">
-			Start game
-		</button>
+	<div id="menu">
+		{% include './menu.html' %}
 	</div>
+
 	<div id="game" style="display: none;">
 		{% include './game.html' %}
 	</div>
@@ -24,8 +23,17 @@
 </html>
 
 <script>
-	function showGame() {
-		document.getElementById("show-game").style.display = "none";
-		document.getElementById("game").style.display = "block";
+	function setupSinglePageApplication() {
+		document.getElementById("game").style.display = "none";
+
+		findMatch = document.getElementById('find-match');
+		findMatch.addEventListener('click', () => {
+			document.getElementById("menu").style.display = "none";
+			document.getElementById("game").style.display = "block";
+			if (!gameSocket) {
+				startGame();
+			}
+		});
 	}
+	document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 </script>

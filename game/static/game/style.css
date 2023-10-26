@@ -60,7 +60,7 @@ body {
 	z-index: 999;
 }
 
-#overlay {
+#loadingScreen {
 	display: none;
 	position: fixed;
 	top: 0;
@@ -70,10 +70,9 @@ body {
 	background: rgba(0, 0, 0, 1); /* Semi-transparent background */
 	z-index: 1000;
 	text-align: center;
-} 
+}
 
-/* Style for the message */
- #message {
+#loadingScreen p {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -88,7 +87,7 @@ button {
     font-family: 'Press Start 2P', cursive;
 }
 
-#start-button {
+#find-match {
     background-color: black;
     color: #ffffff;
     padding: 10px 20px;
