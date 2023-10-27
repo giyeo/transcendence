@@ -5,13 +5,13 @@
 
 //basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
 let ready = false;
-let sendInputRateMs = 12; //16 = 60fps
+let sendInputRateMs = 6; //16 = 60fps
 let player = 'a'
 let match = "none";
 let leftShift = 400;
 let paddleAx = leftShift + 35;
 let paddleBx = leftShift + 745;
-
+let startCountDown = false;
 //É declarado no front-end mesmo, podemos fazer uma lógica para pegar do backend no handshake.
 let paddleAy = 20 + 300 - 50;
 let paddleBy = 20 + 300 - 50;
@@ -51,12 +51,16 @@ async function goToPosition(newX, newY) {
 		while(i < DLSS) {
 			ball.x += ((newX - oldX) / DLSS);
 			ball.y += ((newY - oldY) / DLSS);
-			await sleep(12 / DLSS);
+			// drawGame();
+			// addPosition(ball.x, ball.y);
+			await sleep(10 / DLSS);
 			i++;
 		}
 	}
 	ball.x = newX;
 	ball.y = newY;
+	drawGame();
+	addPosition(ball.x, ball.y);
 }
 
 //____________________________TAIL_BEGIN____________________________
@@ -107,26 +111,25 @@ function onMessageWebSocket(e) {
 		return ;
 	}
 	loadingScreen.style.display = 'none';
+	startCountDown = true;
 	if (player === 'b')
 		paddleAy = data.data.aY; //dont receive myself, only if i'm player B
 	else
 		paddleBy = data.data.bY;
 	//ball.x = data.data.ballX;
 	//ball.y = data.data.ballY;
-	goToPosition(data.data.ballX, data.data.ballY)
 	ball.radians = data.data.ballRad;
 	ball.velocity = data.data.ballVelocity;
 	scoreA = data.data.scoreA;
 	scoreB = data.data.scoreB;
 	if(data.data.sound != "none")
-		playAudio(data.data.sound);
-	if(scoreA > 111 || scoreB > 111) {
-			scoreA = 0;
-			scoreB = 0;
-			gameSocket.close();
+	playAudio(data.data.sound);
+	if(scoreA > 3 || scoreB > 3) {
+		scoreA = 0;
+		scoreB = 0;
+		gameSocket.close();
 	}
-	drawGame();
-	addPosition(ball.x, ball.y);
+	goToPosition(data.data.ballX, data.data.ballY)
 }
 
 async function onCloseWebSocket() {
@@ -145,7 +148,10 @@ async function onCloseWebSocket() {
 }
 
 async function countDown() {
-	sendWebSocket.sendPaddlePosition();
+	while(startCountDown == false) {
+		await sleep(100);
+	}
+	startCountDown = false;
 	let element = document.getElementById('countDown');
 	let count = 3;
 	while(count > 0) {
@@ -264,6 +270,7 @@ function startContinuousMove(direction) {
 				if(player == 'b' && paddleBy < 520)
 					paddleBy += 10;
 			}
+			movePaddleClient();
 		}, 16); // Adjust the interval as needed for desired speed
 	}
 }
@@ -338,25 +345,37 @@ function setupGame() {
 	}
 }
 
+function movePaddleClient() {
+	if(player == 'a')
+		document.getElementById('paddleA').style.top = `${paddleAy}px`;
+	if(player == 'b')
+		document.getElementById('paddleB').style.top = `${paddleBy}px`;
+}
+
 function drawGame() {
 	elementPositions = [
 		{
 			top: paddleAy,
 			left: paddleAx,
-			element: document.getElementById('paddleA')
+			element: document.getElementById('paddleA'),
+			player: 'a'
 		},
 		{
 			top: paddleBy,
 			left: paddleBx,
-			element: document.getElementById('paddleB')
+			element: document.getElementById('paddleB'),
+			player: 'b'
 		},
 		{
 			top: ball.y,
 			left: ball.x,
-			element: document.getElementById('ball')
+			element: document.getElementById('ball'),
+			player: 'none'
 		},
 	]
 	for (let elementPosition of elementPositions) {
+		if(elementPosition.player == player)
+			continue;
 		elementPosition.element.style.top = `${elementPosition.top}px`;
 		elementPosition.element.style.left = `${elementPosition.left}px`;
 	}
