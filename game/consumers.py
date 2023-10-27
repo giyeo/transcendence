@@ -21,7 +21,7 @@ class GameConsumer(WebsocketConsumer):
         if count % 2 == 0:
             match_name = "match" + str(count)
             player = 'a'
-            values[match_name] = {"aY": 0, "bY": 0}
+            values[match_name] = {"aY": 270, "bY": 270}
         else:
             player = 'b'
             new_match = True
@@ -59,10 +59,21 @@ class GameConsumer(WebsocketConsumer):
         pass
             
     def gameLoop(self, match_name):
+        game_data = server.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
+        async_to_sync(self.channel_layer.group_send)(match_name,
+            {
+                "type":"send_game_data",
+                "data": game_data
+            }
+        )
         time.sleep(4)
         while True:
             #if values[match_name]["aY"] is not None and values[match_name]["bY"] is not None:
             game_data = server.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
+            if(game_data.get('scoreA') == 2 or game_data.get('scoreB') == 2):
+                #disconnect all people inside the group
+                async_to_sync(self.channel_layer.group_send)(match_name, {"type": "close"})
+                return #kill the thread
             async_to_sync(self.channel_layer.group_send)(match_name,
                 {
                     "type":"send_game_data",

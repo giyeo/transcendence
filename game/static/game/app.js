@@ -98,6 +98,9 @@ function onOpenWebSocket(e) {
 function onMessageWebSocket(e) {
 	let data = JSON.parse(e.data)
 
+	if (data.close)	{
+		gameSocket.close();
+	}
 	if (data.player) {
 		player = data.player;
 		match = data.match;
