@@ -18,7 +18,7 @@ class GameConsumer(WebsocketConsumer):
         if count % 2 == 0:
             room_group_name = "match" + str(count)
             player = 'a'
-            values[room_group_name] = {"aY": None, "bY": None}
+            values[room_group_name] = {"aY": 0, "bY": 0}
         else:
             player = 'b'
         print("CONNECTED, CHANNEL:", self.channel_name, room_group_name, player, count)
@@ -42,9 +42,13 @@ class GameConsumer(WebsocketConsumer):
             values[match]["bY"] = data["bY"]
         else:
             return
-        if values[match]["aY"] == None or values[match]["bY"] == None:
+        if values[match]["aY"] == None and values[match]["bY"] == None:
             return
-        game_data = server.gameloop(match, {'aY': values[match]['aY'], 'bY': values[match]['bY']})
+
+        if(data["player"] and data["player"] == 'a'):
+            game_data = server.gameloop(match, {'aY': values[match]['aY'], 'bY': values[match]['bY']})
+        else:
+            return
         async_to_sync(self.channel_layer.group_send)(
             match,
             {
@@ -52,8 +56,8 @@ class GameConsumer(WebsocketConsumer):
                 "data": game_data
             }
         )
-        values[match]["aY"] = None
-        values[match]["bY"] = None
+        # values[match]["aY"] = None
+        # values[match]["bY"] = None
 
     def send_game_data(self, event):
         game_data = event["data"]

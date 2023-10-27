@@ -163,7 +163,8 @@ class sendWebSocket {
 				gameSocket.send(JSON.stringify({
 					type: "paddlePosition",
 					aY: paddleAy,
-					match: match
+					match: match,
+					player: player
 				}));
 				console.log("a");
 			}
@@ -171,7 +172,8 @@ class sendWebSocket {
 				gameSocket.send(JSON.stringify({
 					type: "paddlePosition",
 					bY: paddleBy,
-					match: match
+					match: match,
+					player: player
 				}));
 				console.log("b");
 			}
@@ -224,6 +226,7 @@ async function startGame() {
 	startEventListeners();
 	setupGame();
 	await countDown();
+
 	gameLoop();
 }
 
@@ -248,15 +251,15 @@ function startContinuousMove(direction) {
 	if (!isKeyDown) {
 		isKeyDown = true;
 		keyDownInterval = setInterval(() => {
-			if (direction === 'up' && paddleAy >= 30) {
-				if(player == 'a')
+			if (direction === 'up') {
+				if(player == 'a' && paddleAy >= 30)
 					paddleAy -= 10; // Move rectangle 1 upward
-				else
+				if(player == 'b' && paddleBy >= 30)
 					paddleBy -= 10;
-			} else if (direction === 'down' && paddleAy < 520) {
-				if(player == 'a')
+			} else if (direction === 'down') {
+				if(player == 'a' && paddleAy < 520)
 					paddleAy += 10; // Move rectangle 2 downward
-				else
+				if(player == 'b' && paddleBy < 520)
 					paddleBy += 10;
 			}
 		}, 16); // Adjust the interval as needed for desired speed
