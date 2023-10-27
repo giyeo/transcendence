@@ -23,8 +23,6 @@ let scoreB = 0;
 var ball = {
 	x: 0,
 	y: 0,
-	radians: 0,
-	velocity: 0
 };
 
 //____________________________UTILS_BEGIN____________________________
@@ -102,34 +100,34 @@ function onOpenWebSocket(e) {
 function onMessageWebSocket(e) {
 	let data = JSON.parse(e.data)
 
-	if (data.close)	{
-		gameSocket.close();
-	}
-	if (data.player) {
+	if (data.type === 'handshake') {
 		player = data.player;
 		match = data.match;
-		return ;
 	}
-	loadingScreen.style.display = 'none';
-	startCountDown = true;
+	if (data.type === 'gameState') {
+		handleGameState(data.data);
+	}
+	if (data.type === 'countDown') {
+		loadingScreen.style.display = 'none';
+		startCountDown = true;
+	}
+}
+
+function handleGameState(data) {
 	if (player === 'b')
-		paddleAy = data.data.aY; //dont receive myself, only if i'm player B
-	else
-		paddleBy = data.data.bY;
-	//ball.x = data.data.ballX;
-	//ball.y = data.data.ballY;
-	ball.radians = data.data.ballRad;
-	ball.velocity = data.data.ballVelocity;
-	scoreA = data.data.scoreA;
-	scoreB = data.data.scoreB;
-	if(data.data.sound != "none")
-	playAudio(data.data.sound);
+		paddleAy = data.aY; //dont receive myself, only if i'm player B
+	if (player === 'a')
+		paddleBy = data.bY;
+	scoreA = data.scoreA;
+	scoreB = data.scoreB;
+	if(data.sound != "none")
+		playAudio(data.sound);
 	if(scoreA > 3 || scoreB > 3) {
 		scoreA = 0;
 		scoreB = 0;
 		gameSocket.close();
 	}
-	goToPosition(data.data.ballX, data.data.ballY)
+	goToPosition(data.ballX, data.ballY)
 }
 
 async function onCloseWebSocket() {

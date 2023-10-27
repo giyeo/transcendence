@@ -33,7 +33,7 @@ class GameConsumer(WebsocketConsumer):
         #implement matchmaking here
         count += 1
         self.accept()
-        self.send(text_data=json.dumps({"player": player, "match": match_name}))
+        self.send(text_data=json.dumps({"type":"handshake", "player": player, "match": match_name}))
         if new_match:
             self.newMatch(match_name)
 
@@ -57,15 +57,12 @@ class GameConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         print("disconnect")
         pass
-            
+    
     def gameLoop(self, match_name):
-        game_data = server.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
         async_to_sync(self.channel_layer.group_send)(match_name,
             {
-                "type":"send_game_data",
-                "data": game_data
-            }
-        )
+                "type":"send_game_data"
+            })
         time.sleep(4)
         while True:
             #if values[match_name]["aY"] is not None and values[match_name]["bY"] is not None:
@@ -84,7 +81,14 @@ class GameConsumer(WebsocketConsumer):
             time.sleep(10 / 1000)  # 12ms
     
     def send_game_data(self, event):
+        if("data" not in event):
+            self.send(text_data=json.dumps({
+                "type":"countDown",
+            }))
+            return
+        
         game_data = event["data"]
         self.send(text_data=json.dumps({
+            "type":"gameState",
             "data": game_data
         }))
