@@ -67,7 +67,7 @@ class GameConsumer(WebsocketConsumer):
                 return #kill the thread
             if(game_data.get('sound') == 'score'):
                 time.sleep(1)
-            time.sleep(10/1000)  # 10ms
+            time.sleep(12/1000)  # 10ms
     
     def send_game_data(self, event):
         global emits
@@ -90,7 +90,7 @@ recv = 0
 timeA = int(time.time() * 1000)
 emits = 0
 
-def calcTime(match_name):
+async def calcTime(match_name):
 	global recv, timeA, emits
 	recv = recv + 1
 	timeB = int(time.time() * 1000)

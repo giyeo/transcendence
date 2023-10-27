@@ -5,7 +5,7 @@
 
 //basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
 let ready = false;
-let sendInputRateMs = 6; //16 = 60fps
+let sendInputRateMs = 12; //16 = 60fps
 let player = 'a'
 let match = "none";
 let leftShift = 400;
@@ -138,8 +138,6 @@ async function handleGameState(data) {
 	ball.x = data.ballX;
 	ball.y = data.ballY;
 	console.log(ball.x, ball.y)
-	drawGame(); //0.1 miliseconds
-	addPosition(ball.x, ball.y);
 }
 
 async function onCloseWebSocket() {
@@ -176,7 +174,7 @@ async function countDown() {
 }
 
 class sendWebSocket {
-	static sendPaddlePosition() {
+	static async sendPaddlePosition() {
 		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
 			if(player === 'a') {
 				gameSocket.send(JSON.stringify({
@@ -216,6 +214,8 @@ async function gameLoop() {
 			ready = true;
 		}
 		sendWebSocket.sendPaddlePosition();
+		drawGame(); //0.1 miliseconds
+		addPosition(ball.x, ball.y);
 		await sleep(sendInputRateMs);
 	}
 }
