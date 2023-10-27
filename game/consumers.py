@@ -65,6 +65,7 @@ class GameConsumer(WebsocketConsumer):
                 "countDown": True 
             })
         time.sleep(4)
+        server.setupGameLoop()
         while True:
             #if values[match_name]["aY"] is not None and values[match_name]["bY"] is not None:
             game_data = server.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
@@ -83,6 +84,7 @@ class GameConsumer(WebsocketConsumer):
             time.sleep(10/1000)  # 12ms
     
     def send_game_data(self, event):
+        global emits
         if("countDown" in event):
             self.send(text_data=json.dumps({
                 "type":"countDown",
@@ -94,3 +96,20 @@ class GameConsumer(WebsocketConsumer):
             "type":"gameState",
             "data": game_data
         }))
+        emits+=1
+        calcTime(match_name)
+
+
+recv = 0
+timeA = int(time.time() * 1000)
+emits = 0
+
+def calcTime(match_name):
+	global recv, timeA, emits
+	recv = recv + 1
+	timeB = int(time.time() * 1000)
+	if (timeB - timeA >= 1000):
+		print(f"match_name: {match_name} requests/s: {recv}, response/s:{emits}")
+		timeA = timeB
+		emits = 0
+		recv = 0

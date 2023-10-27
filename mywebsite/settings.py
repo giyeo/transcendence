@@ -33,7 +33,6 @@ ALLOWED_HOSTS = ["0.tcp.sa.ngrok.io:10113", "0.tcp.sa.ngrok.io", "34.95.142.132:
 INSTALLED_APPS = [
     'channels',
     'daphne',
-    'chat',
 	'game',
     'django.contrib.admin',
     'django.contrib.auth',
