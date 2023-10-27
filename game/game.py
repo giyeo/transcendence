@@ -12,18 +12,19 @@ middleY = 300 + 10
 
 #garanta que só bata 1 vez a bola por paddle
 def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn):
-	#random between 0 and 10 
-	
+	#random between 0 and 10
+
 	sound = "none"
 	#bot
-	if(ballY >= 570):
-		bY = 520
-	elif(ballY <= 70):
-		bY = 20
-	else:
-		bY = ballY - 50
-	# print(aY, bY, ballX, ballY, ballVelocity)
+	# if(ballY >= 570):
+	# 	bY = 520
+	# elif(ballY <= 70):
+	# 	bY = 20
+	# else:
+	# 	bY = ballY - 50
 	
+	# print(aY, bY, ballX, ballY, ballVelocity)
+
 	ballX += ballVelocity * math.cos(ballRad)
 	ballY += ballVelocity * math.sin(ballRad)
 	#ball went off limits
@@ -66,7 +67,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 			ballVelocity += 0.25
 		turn = 'a'
 		sound = "paddle"
-	
+
 	#hit wall
 	if (ballY <= topWall or ballY >= botWall):
 		ballRad = -ballRad

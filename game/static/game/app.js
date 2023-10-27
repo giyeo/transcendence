@@ -6,7 +6,7 @@
 //basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
 let ready = false;
 let framerate = 12; //16 = 60fps
-let player = 'A'
+let player = 'a'
 let leftShift = 400;
 let paddleAx = leftShift + 35;
 let paddleBx = leftShift + 745;
@@ -61,7 +61,7 @@ async function goToPosition(newX, newY) {
 //____________________________TAIL_BEGIN____________________________
 var ballPositionHistory = [];
 const container = document.getElementById('tail');
-	
+
 function addPosition(x, y) {
 	// Add the new position to the list
 	ballPositionHistory.push({ x, y });
@@ -97,7 +97,12 @@ function onOpenWebSocket(e) {
 
 function onMessageWebSocket(e) {
 	let data = JSON.parse(e.data)
-	if(player === 'B')
+
+	if (data.player) {
+		player = data.player
+		return ;
+	}
+	if (player === 'b')
 		paddleAy = data.data.aY; //dont receive myself, only if i'm player B
 	else
 		paddleBy = data.data.bY;
