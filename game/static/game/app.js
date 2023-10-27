@@ -57,8 +57,6 @@ async function goToPosition(newX, newY) {
 	}
 	ball.x = newX;
 	ball.y = newY;
-	drawGame();
-	addPosition(ball.x, ball.y);
 }
 
 //____________________________TAIL_BEGIN____________________________
@@ -97,14 +95,23 @@ function onOpenWebSocket(e) {
 	console.log('WebSocket connected');
 }
 
-function onMessageWebSocket(e) {
-	let data = JSON.parse(e.data)
+received = 0;
+//this function have shown that the server is sending 90fps
+//so the problem is on rendering stuff in the screen
+setInterval(function() {
+	console.log("received: ", received, "/s");
+	received = 0;
+}, 1000);
 
+async function onMessageWebSocket(e) {
+	let data = JSON.parse(e.data)
+	console.log(data.type)
 	if (data.type === 'handshake') {
 		player = data.player;
 		match = data.match;
 	}
 	if (data.type === 'gameState') {
+		received++;
 		handleGameState(data.data);
 	}
 	if (data.type === 'countDown') {
@@ -113,7 +120,7 @@ function onMessageWebSocket(e) {
 	}
 }
 
-function handleGameState(data) {
+async function handleGameState(data) {
 	if (player === 'b')
 		paddleAy = data.aY; //dont receive myself, only if i'm player B
 	if (player === 'a')
@@ -127,7 +134,13 @@ function handleGameState(data) {
 		scoreB = 0;
 		gameSocket.close();
 	}
-	goToPosition(data.ballX, data.ballY)
+	// goToPosition(data.ballX, data.ballY) //interpolation
+	ball.x = data.ballX;
+	ball.y = data.ballY;
+	
+	//get taken time of this function
+	drawGame(); //0.1 miliseconds
+	// addPosition(ball.x, ball.y);
 }
 
 async function onCloseWebSocket() {
@@ -173,7 +186,7 @@ class sendWebSocket {
 					match: match,
 					player: player
 				}));
-				console.log("a");
+				
 			}
 			if(player === 'b') {
 				gameSocket.send(JSON.stringify({
@@ -182,7 +195,7 @@ class sendWebSocket {
 					match: match,
 					player: player
 				}));
-				console.log("b");
+				
 			}
 		}
 	}

@@ -61,12 +61,14 @@ class GameConsumer(WebsocketConsumer):
     def gameLoop(self, match_name):
         async_to_sync(self.channel_layer.group_send)(match_name,
             {
-                "type":"send_game_data"
+                "type":"send_game_data",
+                "countDown": True 
             })
         time.sleep(4)
         while True:
             #if values[match_name]["aY"] is not None and values[match_name]["bY"] is not None:
             game_data = server.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
+            #time taken in ms
             async_to_sync(self.channel_layer.group_send)(match_name,
                 {
                     "type":"send_game_data",
@@ -78,10 +80,10 @@ class GameConsumer(WebsocketConsumer):
                 return #kill the thread
             if(game_data.get('sound') == 'score'):
                 time.sleep(1)
-            time.sleep(10 / 1000)  # 12ms
+            time.sleep(10/1000)  # 12ms
     
     def send_game_data(self, event):
-        if("data" not in event):
+        if("countDown" in event):
             self.send(text_data=json.dumps({
                 "type":"countDown",
             }))
