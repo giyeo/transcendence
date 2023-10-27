@@ -1,11 +1,11 @@
 //paddleAx / Bx são declarados no backend e no front, devem ser mudados juntos, (podemos criar alguma lógica para pegar esses valores no handshake ou HTTP GET)
 //player = 'A' deve ser um valor que é setado pelo backend e apenas usado por nós (after handshake)
-//o framerate é um valor que está sendo setado no client, e diz o número de requests que ele faz para o backend em ms, se 16 = 16 por ms
+//o sendInputRateMs é um valor que está sendo setado no client, e diz o número de requests que ele faz para o backend em ms, se 16 = 16 por ms
 //enviamos o Ay e By, são os valores inicias da posição do paddle
 
 //basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
 let ready = false;
-let framerate = 12; //16 = 60fps
+let sendInputRateMs = 12; //16 = 60fps
 let player = 'a'
 let match = "none";
 let leftShift = 400;
@@ -51,7 +51,7 @@ async function goToPosition(newX, newY) {
 		while(i < DLSS) {
 			ball.x += ((newX - oldX) / DLSS);
 			ball.y += ((newY - oldY) / DLSS);
-			await sleep(framerate / DLSS);
+			await sleep(12 / DLSS);
 			i++;
 		}
 	}
@@ -197,7 +197,7 @@ async function gameLoop() {
 			ready = true;
 		}
 		sendWebSocket.sendPaddlePosition();
-		await sleep(framerate);
+		await sleep(sendInputRateMs);
 	}
 }
 
@@ -226,7 +226,6 @@ async function startGame() {
 	startEventListeners();
 	setupGame();
 	await countDown();
-
 	gameLoop();
 }
 
