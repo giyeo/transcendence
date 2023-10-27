@@ -27,6 +27,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 
 	ballX += ballVelocity * math.cos(ballRad)
 	ballY += ballVelocity * math.sin(ballRad)
+
 	#ball went off limits
 	if (ballX < leftShift or ballX > leftShift + 800):
 		if(ballX < leftShift):
@@ -72,7 +73,6 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 	if (ballY <= topWall or ballY >= botWall):
 		ballRad = -ballRad
 		sound = "wall"
-
 	return ({
 		'aY':aY,
 		'bY':bY,

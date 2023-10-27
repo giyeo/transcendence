@@ -137,10 +137,9 @@ async function handleGameState(data) {
 	// goToPosition(data.ballX, data.ballY) //interpolation
 	ball.x = data.ballX;
 	ball.y = data.ballY;
-	
-	//get taken time of this function
+	console.log(ball.x, ball.y)
 	drawGame(); //0.1 miliseconds
-	// addPosition(ball.x, ball.y);
+	addPosition(ball.x, ball.y);
 }
 
 async function onCloseWebSocket() {
@@ -366,6 +365,12 @@ function movePaddleClient() {
 function drawGame() {
 	elementPositions = [
 		{
+			top: ball.y,
+			left: ball.x,
+			element: document.getElementById('ball'),
+			player: 'none'
+		},
+		{
 			top: paddleAy,
 			left: paddleAx,
 			element: document.getElementById('paddleA'),
@@ -376,14 +381,7 @@ function drawGame() {
 			left: paddleBx,
 			element: document.getElementById('paddleB'),
 			player: 'b'
-		},
-		{
-			top: ball.y,
-			left: ball.x,
-			element: document.getElementById('ball'),
-			player: 'none'
-		},
-	]
+		}]
 	for (let elementPosition of elementPositions) {
 		if(elementPosition.player == player)
 			continue;

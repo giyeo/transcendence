@@ -26,7 +26,7 @@ def setupGameLoop():
 	gamedata['turn'] = turn
 	gamedata['sound'] = 'none'
 
-def gameloop(match_name, data):
+def gameloop(data):
 	global gamedata
 	gamedata['aY'] = data['aY']
 	gamedata['bY'] = data['bY']
