@@ -7,36 +7,59 @@ import time
 group_count = {}
 
 
+count = 0
+room_group_name = None
+values = {}
 
 class GameConsumer(WebsocketConsumer):
     def connect(self):
-        print("CONNECTED, CHANNEL:", self.channel_name)
-        self.room_group_name = "match"
-        if len(group_count) % 2 == 0:
+        global room_group_name, count
+        global valueA, valueB
+        if count % 2 == 0:
+            room_group_name = "match" + str(count)
             player = 'a'
+            values[room_group_name] = {"aY": None, "bY": None}
         else:
             player = 'b'
-        self.update_group_count(self.room_group_name, 1)
+        print("CONNECTED, CHANNEL:", self.channel_name, room_group_name, player, count)
+        # self.update_group_.count(room_group_name, 1)
         async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name, self.channel_name
+            room_group_name, self.channel_name
         )
         #implement matchmaking here
-        time.sleep(1)
+        count += 1
         self.accept()
-        self.send(text_data=json.dumps({"player": player}))
-
+        self.send(text_data=json.dumps({"player": player, "match": room_group_name}))
 
     def receive(self, text_data):
         data = json.loads(text_data)
-        if "aY" not in data and "bY" not in data:
+        match = None
+        if "match" in data:
+            match = data["match"]
+        if "aY" in data:
+            values[match]["aY"] = data["aY"]
+        elif "bY" in data:
+            values[match]["bY"] = data["bY"]
+        else:
             return
-        game_data = server.gameloop(self.room_group_name, {'aY': data["aY"], 'bY': data["bY"]})
-        # self.send(text_data=json.dumps({"data": game_data}))
-        time.sleep(12/1000)
+        if values[match]["aY"] == None or values[match]["bY"] == None:
+            return
+        game_data = server.gameloop(match, {'aY': values[match]['aY'], 'bY': values[match]['bY']})
         async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {"data": game_data}
+            match,
+            {
+                "type":"send_game_data",
+                "data": game_data
+            }
         )
+        values[match]["aY"] = None
+        values[match]["bY"] = None
+
+    def send_game_data(self, event):
+        game_data = event["data"]
+        self.send(text_data=json.dumps({
+            "data": game_data
+        }))
 
     def disconnect(self, close_code):
         print("disconnect")

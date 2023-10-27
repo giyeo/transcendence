@@ -7,6 +7,7 @@
 let ready = false;
 let framerate = 12; //16 = 60fps
 let player = 'a'
+let match = "none";
 let leftShift = 400;
 let paddleAx = leftShift + 35;
 let paddleBx = leftShift + 745;
@@ -91,7 +92,6 @@ function addPosition(x, y) {
 const loadingScreen = document.getElementById('loadingScreen');
 
 function onOpenWebSocket(e) {
-	loadingScreen.style.display = 'none';
 	console.log('WebSocket connected');
 }
 
@@ -99,9 +99,11 @@ function onMessageWebSocket(e) {
 	let data = JSON.parse(e.data)
 
 	if (data.player) {
-		player = data.player
+		player = data.player;
+		match = data.match;
 		return ;
 	}
+	loadingScreen.style.display = 'none';
 	if (player === 'b')
 		paddleAy = data.data.aY; //dont receive myself, only if i'm player B
 	else
@@ -115,7 +117,7 @@ function onMessageWebSocket(e) {
 	scoreB = data.data.scoreB;
 	if(data.data.sound != "none")
 		playAudio(data.data.sound);
-	if(scoreA > 1 || scoreB > 1) {
+	if(scoreA > 111 || scoreB > 111) {
 			scoreA = 0;
 			scoreB = 0;
 			gameSocket.close();
@@ -157,10 +159,22 @@ async function countDown() {
 class sendWebSocket {
 	static sendPaddlePosition() {
 		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
-			gameSocket.send(JSON.stringify({
-				aY: paddleAy,
-				bY: paddleBy,
-			}));
+			if(player === 'a') {
+				gameSocket.send(JSON.stringify({
+					type: "paddlePosition",
+					aY: paddleAy,
+					match: match
+				}));
+				console.log("a");
+			}
+			if(player === 'b') {
+				gameSocket.send(JSON.stringify({
+					type: "paddlePosition",
+					bY: paddleBy,
+					match: match
+				}));
+				console.log("b");
+			}
 		}
 	}
 }
@@ -235,11 +249,15 @@ function startContinuousMove(direction) {
 		isKeyDown = true;
 		keyDownInterval = setInterval(() => {
 			if (direction === 'up' && paddleAy >= 30) {
-				paddleAy -= 10; // Move rectangle 1 upward
-				// paddleBy -= 10;
+				if(player == 'a')
+					paddleAy -= 10; // Move rectangle 1 upward
+				else
+					paddleBy -= 10;
 			} else if (direction === 'down' && paddleAy < 520) {
-				paddleAy += 10; // Move rectangle 2 downward
-				// paddleBy += 10;
+				if(player == 'a')
+					paddleAy += 10; // Move rectangle 2 downward
+				else
+					paddleBy += 10;
 			}
 		}, 16); // Adjust the interval as needed for desired speed
 	}
