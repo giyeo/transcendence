@@ -11,8 +11,8 @@ values = {}
 
 class GameConsumer(WebsocketConsumer):
     def connect(self):
-        new_match = False
         global match_name, count
+        new_match = False
         if count % 2 == 0:
             match_name = "match" + str(count)
             player = 'a'
@@ -42,22 +42,22 @@ class GameConsumer(WebsocketConsumer):
             values[data["match"]]["aY"] = data["aY"]
         elif "bY" in data:
             values[data["match"]]["bY"] = data["bY"]
-        return 
+        return
 
     def disconnect(self, close_code):
         print("disconnect", close_code)
         pass
-    
+
     def gameLoop(self, match_name):
         async_to_sync(self.channel_layer.group_send)(match_name,
             {
                 "type":"send_game_data",
                 "countDown": True 
             })
+        match.setupGameLoop(match_name)
         time.sleep(4)
-        match.setupGameLoop()
         while True:
-            game_data = match.gameloop({'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
+            game_data = match.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
             async_to_sync(self.channel_layer.group_send)(match_name,
                 {
                     "type":"send_game_data",
@@ -67,8 +67,9 @@ class GameConsumer(WebsocketConsumer):
                 return #kill the thread
             if(game_data.get('sound') == 'score'):
                 time.sleep(1)
-            time.sleep(12/1000)  # 10ms
-    
+            time.sleep(11/1000)  # 10ms
+            # print(f"match_name: {match_name} time: {(end-start) * 1000}")
+
     def send_game_data(self, event):
         global emits
         if("countDown" in event):

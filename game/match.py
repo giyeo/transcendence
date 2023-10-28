@@ -11,28 +11,29 @@ def getAngle(turn):
 	else:
 		return random.randint(315, 405) % 360
 
-def setupGameLoop():
+def setupGameLoop(match_name):
 	global gamedata
 	rand = random.randint(0, 1)
 	turn = 'b'
 	if(rand == 0):
 		turn = 'a'
-	gamedata['ballY'] = 300 + 10
-	gamedata['ballX'] = 400 - 10 + leftShift
-	gamedata['ballRad'] = math.radians(getAngle(turn))
-	gamedata['ballVelocity'] = 5
-	gamedata['scoreA'] = 0
-	gamedata['scoreB'] = 0
-	gamedata['turn'] = turn
-	gamedata['sound'] = 'none'
+	gamedata[match_name] = {}
+	gamedata[match_name]['ballY'] = 300 + 10
+	gamedata[match_name]['ballX'] = 400 - 10 + leftShift
+	gamedata[match_name]['ballRad'] = math.radians(getAngle(turn))
+	gamedata[match_name]['ballVelocity'] = 5
+	gamedata[match_name]['scoreA'] = 0
+	gamedata[match_name]['scoreB'] = 0
+	gamedata[match_name]['turn'] = turn
+	gamedata[match_name]['sound'] = 'none'
 
-def gameloop(data):
+def gameloop(match_name, data):
 	global gamedata
-	gamedata['aY'] = data['aY']
-	gamedata['bY'] = data['bY']
+	gamedata[match_name]['aY'] = data['aY']
+	gamedata[match_name]['bY'] = data['bY']
 
-	gamedata = newBallPosition(
-		gamedata['aY'], gamedata['bY'],
-		gamedata['ballY'], gamedata['ballX'], gamedata['ballRad'], gamedata['ballVelocity'],
-		gamedata['scoreA'], gamedata['scoreB'], gamedata['turn'])
-	return gamedata
+	gamedata[match_name] = newBallPosition(
+		gamedata[match_name]['aY'], gamedata[match_name]['bY'],
+		gamedata[match_name]['ballY'], gamedata[match_name]['ballX'], gamedata[match_name]['ballRad'], gamedata[match_name]['ballVelocity'],
+		gamedata[match_name]['scoreA'], gamedata[match_name]['scoreB'], gamedata[match_name]['turn'])
+	return gamedata[match_name]

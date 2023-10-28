@@ -49,14 +49,16 @@ async function goToPosition(newX, newY) {
 		while(i < DLSS) {
 			ball.x += ((newX - oldX) / DLSS);
 			ball.y += ((newY - oldY) / DLSS);
-			// drawGame();
-			// addPosition(ball.x, ball.y);
-			await sleep(10 / DLSS);
+			drawGame();
+			addPosition(ball.x, ball.y);
+			await sleep(12 / DLSS);
 			i++;
 		}
 	}
 	ball.x = newX;
 	ball.y = newY;
+	drawGame();
+	addPosition(ball.x, ball.y);
 }
 
 //____________________________TAIL_BEGIN____________________________
@@ -105,7 +107,6 @@ setInterval(function() {
 
 async function onMessageWebSocket(e) {
 	let data = JSON.parse(e.data)
-	console.log(data.type)
 	if (data.type === 'handshake') {
 		player = data.player;
 		match = data.match;
@@ -134,10 +135,9 @@ async function handleGameState(data) {
 		scoreB = 0;
 		gameSocket.close();
 	}
-	// goToPosition(data.ballX, data.ballY) //interpolation
 	ball.x = data.ballX;
 	ball.y = data.ballY;
-	console.log(ball.x, ball.y)
+	// console.log(ball.x, ball.y)
 }
 
 async function onCloseWebSocket() {
@@ -178,7 +178,6 @@ class sendWebSocket {
 		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
 			if(player === 'a') {
 				gameSocket.send(JSON.stringify({
-					type: "paddlePosition",
 					aY: paddleAy,
 					match: match,
 					player: player
@@ -187,12 +186,10 @@ class sendWebSocket {
 			}
 			if(player === 'b') {
 				gameSocket.send(JSON.stringify({
-					type: "paddlePosition",
 					bY: paddleBy,
 					match: match,
 					player: player
 				}));
-				
 			}
 		}
 	}
@@ -216,7 +213,7 @@ async function gameLoop() {
 		sendWebSocket.sendPaddlePosition();
 		drawGame(); //0.1 miliseconds
 		addPosition(ball.x, ball.y);
-		await sleep(sendInputRateMs);
+		await sleep(12);
 	}
 }
 
