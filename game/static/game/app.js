@@ -20,6 +20,10 @@ let paddleBy = 20 + 300 - 50;
 let scored = false;
 let scoreA = 0;
 let scoreB = 0;
+var oldBall = {
+	x: 0,
+	y: 0,
+};
 var ball = {
 	x: 0,
 	y: 0,
@@ -36,29 +40,6 @@ function playAudio(name) {
 
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-//________________________INTERPOLATION_BEGIN____________________________
-//adding frames N between old and new positions
-async function goToPosition(newX, newY) {
-	var oldX = ball.x;
-	var oldY = ball.y;
-	var DLSS = 4;
-	var i = 0
-	if (Math.abs(newX - oldX) < 300 ) {
-		while(i < DLSS) {
-			ball.x += ((newX - oldX) / DLSS);
-			ball.y += ((newY - oldY) / DLSS);
-			drawGame();
-			addPosition(ball.x, ball.y);
-			await sleep(12 / DLSS);
-			i++;
-		}
-	}
-	ball.x = newX;
-	ball.y = newY;
-	drawGame();
-	addPosition(ball.x, ball.y);
 }
 
 //____________________________TAIL_BEGIN____________________________
@@ -135,9 +116,10 @@ async function handleGameState(data) {
 		scoreB = 0;
 		gameSocket.close();
 	}
+	oldBall.x = ball.x;
+	oldBall.y = ball.y;
 	ball.x = data.ballX;
 	ball.y = data.ballY;
-	// console.log(ball.x, ball.y)
 }
 
 async function onCloseWebSocket() {
@@ -152,6 +134,8 @@ async function onCloseWebSocket() {
 	ballPositionHistory = [];
 	gameSocket = null;
 	scored = false;
+	ball.x = 0;
+	ball.y = 0;
 	console.log('WebSocket closed');
 }
 
@@ -195,6 +179,25 @@ class sendWebSocket {
 	}
 }
 
+async function smoothMoveBall() {
+	// drawGame(ball.x, ball.y);
+	// addPosition(ball.x, ball.y);
+	// await sleep(12);
+	const diffX = ball.x - oldBall.x;
+	const diffY = ball.y - oldBall.y;
+	steps = 2; // 2, 3, 4, 6, 12
+	for (let i = 1; i <= steps; i++) {
+	  const t = i / steps;
+	  const currentX = oldBall.x + diffX * t;
+	  const currentY = oldBall.y + diffY * t;
+	  drawGame(currentX, currentY);
+	  if (i === steps) {
+		addPosition(ball.x, ball.y);
+	  }
+	  await sleep(12 / steps);
+	}
+}
+
 async function gameLoop() {
 	ready = true;
 	while(1) {
@@ -211,10 +214,14 @@ async function gameLoop() {
 			ready = true;
 		}
 		sendWebSocket.sendPaddlePosition();
-		drawGame(); //0.1 miliseconds
-		addPosition(ball.x, ball.y);
-		await sleep(12);
+		await smoothMoveBall();
 	}
+}
+
+function fabs(x) {
+	if(x < 0)
+		return -x;
+	return x;
 }
 
 let gameSocket;
@@ -359,11 +366,11 @@ function movePaddleClient() {
 		document.getElementById('paddleB').style.top = `${paddleBy}px`;
 }
 
-function drawGame() {
+async function drawGame(ballX, ballY) {
 	elementPositions = [
 		{
-			top: ball.y,
-			left: ball.x,
+			top: ballY,
+			left: ballX,
 			element: document.getElementById('ball'),
 			player: 'none'
 		},

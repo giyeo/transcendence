@@ -92,11 +92,11 @@ timeA = int(time.time() * 1000)
 emits = 0
 
 async def calcTime(match_name):
-	global recv, timeA, emits
-	recv = recv + 1
-	timeB = int(time.time() * 1000)
-	if (timeB - timeA >= 1000):
-		print(f"match_name: {match_name} requests/s: {recv}, response/s:{emits}")
-		timeA = timeB
-		emits = 0
-		recv = 0
+    global recv, timeA, emits
+    recv = recv + 1
+    timeB = int(time.time() * 1000)
+    if (timeB - timeA >= 1000):
+        print(f"match_name: {match_name} requests/s: {recv}, response/s:{emits}")
+        timeA = timeB
+        emits = 0
+        recv = 0
