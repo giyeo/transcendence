@@ -8,7 +8,7 @@ let ready = false;
 let sendInputRateMs = 12; //16 = 60fps
 let player = 'a'
 let match = "none";
-let leftShift = 400;
+let leftShift = 200;
 let paddleAx = leftShift + 35;
 let paddleBx = leftShift + 745;
 let startCountDown = false;
@@ -28,6 +28,16 @@ var ball = {
 	x: 0,
 	y: 0,
 };
+
+function getPaddleAx() {
+	paddleAx = leftShift + 35;
+	return paddleAx;
+}
+function getPaddleBx() {
+	paddleBx = leftShift + 745;
+	return paddleBx;
+}
+
 
 //____________________________UTILS_BEGIN____________________________
 function playAudio(name) {
@@ -118,18 +128,18 @@ async function handleGameState(data) {
 	}
 	oldBall.x = ball.x;
 	oldBall.y = ball.y;
-	ball.x = data.ballX;
+	ball.x = data.ballX + leftShift;
 	ball.y = data.ballY;
 }
 
 async function onCloseWebSocket() {
 	let element = document.getElementById('countDown');
-	element.setAttribute('style', 'display: block; left: 320px; top: 280px');
+	element.setAttribute('style', 'display: block; left: 0px; top: 280px');
 	element.innerHTML = `Game Over!`;
 	await sleep(1000);
 	document.getElementById("menu").style.display = "block";
 	document.getElementById("game").style.display = "none";
-	element.setAttribute('style', 'display: block; left: 760px; top: 280px');
+	element.setAttribute('style', 'display: block; left: 360px; top: 280px');
 	container.innerHTML = '';
 	ballPositionHistory = [];
 	gameSocket = null;
@@ -152,7 +162,7 @@ async function countDown() {
 		count--;
 	}
 	element.innerHTML = `GO!`;
-	element.setAttribute('style', 'left: 690px; top: 280px');
+	element.setAttribute('style', 'left: 290px; top: 280px');
 	await sleep(1000);
 	element.setAttribute('style', 'display: none');
 }
@@ -166,7 +176,6 @@ class sendWebSocket {
 					match: match,
 					player: player
 				}));
-				
 			}
 			if(player === 'b') {
 				gameSocket.send(JSON.stringify({
@@ -301,15 +310,16 @@ function handleKeyDown(event) {
 }
 
 function setupGame() {
+	leftShift = window.innerWidth / 2 - 400;
 	let elementPositions = [
 		{
 			top: paddleAy,
-			left: paddleAx,
+			left: getPaddleAx(),
 			element: document.getElementById('paddleA')
 		},
 		{
 			top: paddleBy,
-			left: paddleBx,
+			left: getPaddleBx(),
 			element: document.getElementById('paddleB')
 		},
 		{
@@ -367,6 +377,7 @@ function movePaddleClient() {
 }
 
 async function drawGame(ballX, ballY) {
+	leftShift = window.innerWidth / 2 - 400;
 	elementPositions = [
 		{
 			top: ballY,
@@ -376,13 +387,13 @@ async function drawGame(ballX, ballY) {
 		},
 		{
 			top: paddleAy,
-			left: paddleAx,
+			left: getPaddleAx(),
 			element: document.getElementById('paddleA'),
 			player: 'a'
 		},
 		{
 			top: paddleBy,
-			left: paddleBx,
+			left: getPaddleBx(),
 			element: document.getElementById('paddleB'),
 			player: 'b'
 		}]

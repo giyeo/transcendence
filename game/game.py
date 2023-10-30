@@ -1,13 +1,12 @@
 import math
 import random
 
-leftShift = 400
-aX = leftShift + 35
-bX = leftShift + 745
+aX = 35
+bX = 745
 paddleSize = 100
 topWall = 20
 botWall = 600
-middleX = 400 - 10 + leftShift
+middleX = 400 - 10
 middleY = 300 + 10
 
 #garanta que só bata 1 vez a bola por paddle
@@ -29,8 +28,8 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 	ballY += ballVelocity * math.sin(ballRad)
 
 	#ball went off limits
-	if (ballX < leftShift or ballX > leftShift + 800):
-		if(ballX < leftShift):
+	if (ballX < 0 or ballX > 800):
+		if(ballX < 0):
 			scoreB += 1
 			ballX = bX - 20
 		else:

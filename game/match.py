@@ -3,7 +3,6 @@ import math
 import random
 
 gamedata = {}
-leftShift = 400
 
 def getAngle(turn):
 	if(turn == 'a'):
@@ -19,7 +18,7 @@ def setupGameLoop(match_name):
 		turn = 'a'
 	gamedata[match_name] = {}
 	gamedata[match_name]['ballY'] = 300 + 10
-	gamedata[match_name]['ballX'] = 400 - 10 + leftShift
+	gamedata[match_name]['ballX'] = 400 - 10
 	gamedata[match_name]['ballRad'] = math.radians(getAngle(turn))
 	gamedata[match_name]['ballVelocity'] = 5
 	gamedata[match_name]['scoreA'] = 0
