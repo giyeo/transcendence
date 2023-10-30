@@ -37,7 +37,10 @@ function getPaddleBx() {
 	paddleBx = leftShift + 745;
 	return paddleBx;
 }
-
+function setBallmiddle() {
+	ball.x = 400 - 10 + leftShift;
+	ball.y = 300 + 10;
+}
 
 //____________________________UTILS_BEGIN____________________________
 function playAudio(name) {
@@ -144,8 +147,7 @@ async function onCloseWebSocket() {
 	ballPositionHistory = [];
 	gameSocket = null;
 	scored = false;
-	ball.x = 0;
-	ball.y = 0;
+	setBallmiddle();
 	console.log('WebSocket closed');
 }
 
@@ -311,6 +313,7 @@ function handleKeyDown(event) {
 
 function setupGame() {
 	leftShift = window.innerWidth / 2 - 400;
+	setBallmiddle();
 	let elementPositions = [
 		{
 			top: paddleAy,

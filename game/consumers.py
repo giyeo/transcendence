@@ -4,7 +4,6 @@ import json
 from . import match
 import time
 import threading
-
 count = 0
 match_name = None
 values = {}
@@ -14,7 +13,7 @@ class GameConsumer(WebsocketConsumer):
         global match_name, count
         new_match = False
         if count % 2 == 0:
-            match_name = "match" + str(count)
+            match_name = "match" + str(count // 2)
             player = 'a'
             values[match_name] = {"aY": 270, "bY": 270}
         else:
