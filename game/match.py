@@ -6,9 +6,10 @@ gamedata = {}
 
 def getAngle(turn):
 	if(turn == 'a'):
-		return random.randint(135, 225)
+		angle = random.randint(135, 165)
 	else:
-		return random.randint(315, 405) % 360
+		angle = random.randint(315, 375)
+	return angle % 360
 
 def setupGameLoop(match_name):
 	global gamedata
