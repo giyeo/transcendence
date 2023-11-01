@@ -101,6 +101,10 @@ setInterval(function() {
 
 async function onMessageWebSocket(e) {
 	let data = JSON.parse(e.data)
+	if (data.type === 'close') {
+		//another player has disconnect you won
+		gameSocket.close();
+	}
 	if (data.type === 'handshake') {
 		player = data.player;
 		match = data.match;
