@@ -7,6 +7,7 @@ import threading
 count = 0
 match_name = None
 values = {}
+queue = []
 
 class GameConsumer(WebsocketConsumer):
     def connect(self):
@@ -16,9 +17,11 @@ class GameConsumer(WebsocketConsumer):
             match_name = "match" + str(count // 2)
             player = 'a'
             values[match_name] = {"aY": 270, "bY": 270}
+            queue.append(self.channel_name)
         else:
             player = 'b'
             new_match = True
+            queue.clear()
         print("CONNECTED, CHANNEL:", self.channel_name, match_name, player, count)
         async_to_sync(self.channel_layer.group_add)(
             match_name, self.channel_name
@@ -44,6 +47,11 @@ class GameConsumer(WebsocketConsumer):
         return
 
     def disconnect(self, close_code):
+        global count
+        if(self.channel_name in queue):
+            count -= 1
+            queue.clear()
+
         print("disconnect", close_code)
         pass
 

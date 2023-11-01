@@ -253,6 +253,7 @@ function startEventListeners() {
 	gameSocket.addEventListener('close', onCloseWebSocket);
 	document.addEventListener('keydown', handleKeyDown);
 	document.addEventListener('keyup', handleKeyUp);
+	// document.addEventListener('resize', startGame);
 }
 
 async function startGame() {
@@ -318,36 +319,51 @@ function setupGame() {
 		{
 			top: paddleAy,
 			left: getPaddleAx(),
+			width: 20,
+			height: 100,
 			element: document.getElementById('paddleA')
+			
 		},
 		{
 			top: paddleBy,
 			left: getPaddleBx(),
+			width: 20,
+			height: 100,
 			element: document.getElementById('paddleB')
 		},
 		{
 			top: ball.y,
 			left: ball.x,
+			width: 20,
+			height: 20,
 			element: document.getElementById('ball')
 		},
 		{
 			top: 0,
 			left: leftShift,
+			width: 800,
+			height: 20,
 			element: document.getElementById('horizontalWallLeft')
 		},
 		{
 			top: 310,
 			left: leftShift,
+			width: 800,
+			height: 20,
 			element: document.getElementById('horizontalWallMid')
 		},
 		{
 			top: 620,
 			left: leftShift,
+			width: 800,
+			height: 20,
 			element: document.getElementById('horizontalWallRight')
 		},
 		{
 			top: 20,
 			left: leftShift + 390,
+			width: 20,
+			height: 600,
 			element: document.getElementById('verticalWall')
 		},
 		{
@@ -369,6 +385,12 @@ function setupGame() {
 	for (let elementPosition of elementPositions) {
 		elementPosition.element.style.top = `${elementPosition.top}px`;
 		elementPosition.element.style.left = `${elementPosition.left}px`;
+		if (elementPosition.element !== 'scoreA'
+		 && elementPosition.element !== 'scoreB'
+		 && elementPosition.element !== 'countDown') {
+			elementPosition.element.style.height = `${elementPosition.height}px`;
+			elementPosition.element.style.width = `${elementPosition.width}px`;
+		}
 	}
 }
 
