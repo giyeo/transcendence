@@ -69,7 +69,8 @@ class GameConsumer(WebsocketConsumer):
                 "type":"send_game_data",
                 "countDown": True 
             })
-        match.setupGameLoop(match_name)
+        # match.setupGameLoop(match_name, 'default')
+        match.setupGameLoop(match_name, 'crazyPaddleSizes')
         time.sleep(4)
         while True:
             game_data = match.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})

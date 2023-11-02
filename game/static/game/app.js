@@ -15,6 +15,8 @@ let startCountDown = false;
 //É declarado no front-end mesmo, podemos fazer uma lógica para pegar do backend no handshake.
 let paddleAy = 20 + 300 - 50;
 let paddleBy = 20 + 300 - 50;
+let paddleSizeA = 100;
+let paddleSizeB = 100;
 
 //Apenas seguram valores e setam inicialmente
 let scored = false;
@@ -29,14 +31,6 @@ var ball = {
 	y: 0,
 };
 
-function getPaddleAx() {
-	paddleAx = leftShift + 35;
-	return paddleAx;
-}
-function getPaddleBx() {
-	paddleBx = leftShift + 745;
-	return paddleBx;
-}
 function setBallmiddle() {
 	ball.x = 400 - 10 + leftShift;
 	ball.y = 300 + 10;
@@ -92,8 +86,6 @@ function onOpenWebSocket(e) {
 }
 
 received = 0;
-//this function have shown that the server is sending 90fps
-//so the problem is on rendering stuff in the screen
 setInterval(function() {
 	console.log("received: ", received, "/s");
 	received = 0;
@@ -121,7 +113,7 @@ async function onMessageWebSocket(e) {
 
 async function handleGameState(data) {
 	if (player === 'b')
-		paddleAy = data.aY; //dont receive myself, only if i'm player B
+		paddleAy = data.aY;
 	if (player === 'a')
 		paddleBy = data.bY;
 	scoreA = data.scoreA;
@@ -133,6 +125,8 @@ async function handleGameState(data) {
 		scoreB = 0;
 		gameSocket.close();
 	}
+	paddleSizeA = data.paddleSize;
+	paddleSizeB = data.paddleSize;
 	oldBall.x = ball.x;
 	oldBall.y = ball.y;
 	ball.x = data.ballX + leftShift;
@@ -300,6 +294,7 @@ function startContinuousMove(direction) {
 				if(player == 'b' && paddleBy < 520)
 					paddleBy += 10;
 			}
+			
 			movePaddleClient();
 		}, 16); // Adjust the interval as needed for desired speed
 	}
@@ -322,17 +317,17 @@ function setupGame() {
 	let elementPositions = [
 		{
 			top: paddleAy,
-			left: getPaddleAx(),
+			left: leftShift + 35,
 			width: 20,
-			height: 100,
+			height: paddleSizeA,
 			element: document.getElementById('paddleA')
 			
 		},
 		{
 			top: paddleBy,
-			left: getPaddleBx(),
+			left: leftShift + 745,
 			width: 20,
-			height: 100,
+			height: paddleSizeB,
 			element: document.getElementById('paddleB')
 		},
 		{
@@ -411,29 +406,60 @@ async function drawGame(ballX, ballY) {
 		{
 			top: ballY,
 			left: ballX,
+			height: 20,
 			element: document.getElementById('ball'),
 			player: 'none'
 		},
 		{
 			top: paddleAy,
-			left: getPaddleAx(),
+			left: leftShift + 35,
+			height: paddleSizeA,
 			element: document.getElementById('paddleA'),
 			player: 'a'
 		},
 		{
 			top: paddleBy,
-			left: getPaddleBx(),
+			left: leftShift + 745,
+			height: paddleSizeB,
 			element: document.getElementById('paddleB'),
 			player: 'b'
 		}]
 	for (let elementPosition of elementPositions) {
-		if(elementPosition.player == player)
+		if(elementPosition.player == player) {
+			elementPosition.element.style.height = `${elementPosition.height}px`;
 			continue;
+		}
 		elementPosition.element.style.top = `${elementPosition.top}px`;
 		elementPosition.element.style.left = `${elementPosition.left}px`;
+		elementPosition.element.style.height = `${elementPosition.height}px`;
 	}
 	let element = document.getElementById('scoreA');
 	element.innerHTML = `${scoreA}`;
 	element = document.getElementById('scoreB');
 	element.innerHTML = `${scoreB}`;
+}
+
+class updateElement {
+	static async topLeft(element, top, left) {
+		document.getElementById(element).style.top = `${top}px`;
+		document.getElementById(element).style.left = `${left}px`;
+	}
+	static async topLeftWidthHeight(element, top, left, width, height) {
+		document.getElementById(element).style.top = `${top}px`;
+		document.getElementById(element).style.left = `${left}px`;
+		document.getElementById(element).style.width = `${width}px`;
+		document.getElementById(element).style.height = `${height}px`;
+	}
+	static async top(element, top) {
+		document.getElementById(element).style.top = `${top}px`;
+	}
+	static async left(element, left) {
+		document.getElementById(element).style.left = `${left}px`;
+	}
+	static async width(element, width) {
+		document.getElementById(element).style.width = `${width}px`;
+	}
+	static async height(element, height) {
+		document.getElementById(element).style.height = `${height}px`;
+	}
 }

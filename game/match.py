@@ -11,7 +11,7 @@ def getAngle(turn):
 		angle = random.randint(315, 375)
 	return angle % 360
 
-def setupGameLoop(match_name):
+def setupGameLoop(match_name, matchType):
 	global gamedata
 	rand = random.randint(0, 1)
 	turn = 'b'
@@ -26,6 +26,8 @@ def setupGameLoop(match_name):
 	gamedata[match_name]['scoreB'] = 0
 	gamedata[match_name]['turn'] = turn
 	gamedata[match_name]['sound'] = 'none'
+	gamedata[match_name]['paddleSize'] = 100
+	gamedata[match_name]['gamemode'] = matchType
 
 def gameloop(match_name, data):
 	global gamedata

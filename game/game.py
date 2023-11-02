@@ -1,5 +1,6 @@
 import math
 import random
+import time
 
 aX = 35
 bX = 745
@@ -8,11 +9,16 @@ topWall = 20
 botWall = 600
 middleX = 400 - 10
 middleY = 300 + 10
+change = True
+execs = 0
 
 #garanta que só bata 1 vez a bola por paddle
-def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn):
-	#random between 0 and 10
-
+def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn, gamemode):
+	global paddleSize, execs
+	
+	execs += 1
+	if(gamemode == 'crazyPaddleSizes' and execs % (90 * 3) == 0):
+		paddleSize = random.choice([100, 150])
 	sound = "none"
 	#bot
 	# if(ballY >= 570):
@@ -82,5 +88,6 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		'scoreA':scoreA,
 		'scoreB':scoreB,
 		'turn':turn,
-		'sound':sound
+		'sound':sound,
+		'paddleSize':paddleSize
 	})
