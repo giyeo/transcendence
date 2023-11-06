@@ -37,5 +37,6 @@ def gameloop(match_name, data):
 	gamedata[match_name] = newBallPosition(
 		gamedata[match_name]['aY'], gamedata[match_name]['bY'],
 		gamedata[match_name]['ballY'], gamedata[match_name]['ballX'], gamedata[match_name]['ballRad'], gamedata[match_name]['ballVelocity'],
-		gamedata[match_name]['scoreA'], gamedata[match_name]['scoreB'], gamedata[match_name]['turn'])
+		gamedata[match_name]['scoreA'], gamedata[match_name]['scoreB'], gamedata[match_name]['turn'],
+		'crazyPaddleSizes')
 	return gamedata[match_name]
