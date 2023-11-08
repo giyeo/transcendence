@@ -87,7 +87,7 @@ button {
     font-family: 'Press Start 2P', cursive;
 }
 
-#find-match {
+#find-match #login-guest #login-intra {
     background-color: black;
     color: #ffffff;
     padding: 10px 20px;

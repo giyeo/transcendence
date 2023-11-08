@@ -14,8 +14,12 @@
 	<script src="{% static 'game/app.js' %}" defer></script>
 </head>
 <body>
+	<div id="login">
+		{% include './login.html' %}
+	</div>
+
 	<!-- Wait click on button start game to start game  -->
-	<div id="menu">
+	<div id="menu" style="display: none;">
 		{% include './menu.html' %}
 	</div>
 
@@ -27,7 +31,7 @@
 
 <script>
 	function setupSinglePageApplication() {
-		document.getElementById("game").style.display = "none";
+		history.pushState({page: 'login'}, 'login', '/login/');
 
 		findMatch = document.getElementById('find-match');
 		findMatch.addEventListener('click', () => {
@@ -37,6 +41,29 @@
 				startGame();
 			}
 		});
+		loginGuest = document.getElementById('login-guest');
+		loginGuest.addEventListener('click', () => {
+			document.getElementById("login").style.display = "none";
+			document.getElementById("menu").style.display = "block";
+			history.pushState({page: 'menu'}, 'menu', '/menu/');
+		});
+
+
 	}
+
+	window.addEventListener('popstate', (event) => {
+		if (event.state === null) {
+			return;
+		}
+		if (event.state.page === 'login') {
+			document.getElementById("login").style.display = "block";
+			document.getElementById("menu").style.display = "none";
+		}
+		if (event.state.page === 'menu') {
+			document.getElementById("login").style.display = "none";
+			document.getElementById("menu").style.display = "block";
+		}
+	});
+
 	document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 </script>
