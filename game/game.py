@@ -9,7 +9,6 @@ topWall = 20
 botWall = 600
 middleX = 400 - 10
 middleY = 300 + 10
-change = True
 execs = 0
 
 #garanta que só bata 1 vez a bola por paddle
