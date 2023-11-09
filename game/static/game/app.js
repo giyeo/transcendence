@@ -254,7 +254,7 @@ function startEventListeners() {
 	// document.addEventListener('resize', startGame);
 }
 
-async function startGame() {
+async function startGame(userData) {
 	startWebSockets();
 	startEventListeners();
 	setupGame();

@@ -18,6 +18,9 @@
 		{% include './login.html' %}
 	</div>
 
+	<div id="loading" style="display: none;">
+		{% include './loading.html' %}
+	</div>
 	<!-- Wait click on button start game to start game  -->
 	<div id="menu" style="display: none;">
 		{% include './menu.html' %}
@@ -30,7 +33,75 @@
 </html>
 
 <script>
+	var userData;
+	var intraCode;
+	function getIntraCode() {
+		const urlParams = new URLSearchParams(window.location.search);
+		if (urlParams.has('code')) {
+			intraCode = urlParams.get('code');
+			goToMenu();
+		}
+		if (urlParams.has('error')) {
+			console.log('Code:', urlParams.get('error'));
+		}
+	}
+
+	function getUserData() {
+		return new Promise((resolve, reject) => {
+			const apiUrl = 'http://127.0.0.1:8000/data';
+
+			// Append the 'code' parameter to the URL
+			const apiUrlWithParams = `${apiUrl}?code=${encodeURIComponent(intraCode)}`;
+
+			// Make a GET request to the Django endpoint with the 'code' parameter
+			fetch(apiUrlWithParams)
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok');
+					}
+					return response.json();
+				})
+				.then(data => {
+					// Handle the data from the response
+					userData = data
+					console.log('Data from Django:', data);
+					resolve(data)
+				})
+				.catch(error => {
+					console.error('There was a problem with the fetch operation:', error);
+					resolve(error)
+			});
+		});
+	};
+
+	function mountMenu() {
+		document.getElementById("image").src = userData.image.link;
+		document.getElementById("displayName").innerText = userData.displayname;
+		document.getElementById("loginName").innerText = userData.login;
+	}
+
+	async function goToMenu(asGuest) {
+		document.getElementById("login").style.display = "none";
+		if(intraCode) {
+			document.getElementById("menu").style.display = "none";
+			document.getElementById("loading").style.display = "block";
+			try {
+				await getUserData();
+				mountMenu();
+			} catch (error) {
+				console.error('Error getting user data:', error);
+				document.getElementById("login").style.display = "block";
+				document.getElementById("loading").style.display = "none";
+			}
+		}
+		document.getElementById("loading").style.display = "none";
+		document.getElementById("menu").style.display = "block";
+		history.pushState({page: 'menu'}, 'menu', '/menu/');
+	}
+
 	function setupSinglePageApplication() {
+		getIntraCode();
+		
 		history.pushState({page: 'login'}, 'login', '/login/');
 
 		findMatch = document.getElementById('find-match');
@@ -38,17 +109,20 @@
 			document.getElementById("menu").style.display = "none";
 			document.getElementById("game").style.display = "block";
 			if (!gameSocket) {
-				startGame();
+				startGame(userData);
 			}
 		});
 		loginGuest = document.getElementById('login-guest');
 		loginGuest.addEventListener('click', () => {
-			document.getElementById("login").style.display = "none";
-			document.getElementById("menu").style.display = "block";
-			history.pushState({page: 'menu'}, 'menu', '/menu/');
+			goToMenu();
 		});
 
 
+		loginIntra = document.getElementById('login-intra');
+		loginIntra.addEventListener('click', () => {
+			console.log("Redirecting...");
+			window.location.href = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-f7b0462e2cbc6c9ad253ff148ce9c2f02ab78c16e04b5f2351248a0f6ecc0e7f&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2F&response_type=code";
+		});
 	}
 
 	window.addEventListener('popstate', (event) => {
