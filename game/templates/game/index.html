@@ -65,7 +65,7 @@
 				.then(data => {
 					// Handle the data from the response
 					userData = data
-					console.log('Data from Django:', data);
+					//console.log('Data from Django:', data);
 					resolve(data)
 				})
 				.catch(error => {
@@ -106,7 +106,7 @@
 			})
 			.then(data => {
 				randomUserData = data.results[0]
-				console.log(data.results[0]);
+				//console.log(data.results[0]);
 				resolve(data)
 			})
 			.catch(error => {
@@ -136,6 +136,20 @@
 		}
 	}
 
+	async function getQrcode() {
+		return new Promise((resolve, reject) => {
+				fetch('http://127.0.0.1:8000/qrcode?login=' + userData.login)
+					.then(response => {
+						console.log("QR code received")
+						return response.text();
+						
+					})
+					.catch(error => {
+						console.error('There was a problem with the fetch operation:', error);
+					});
+			})
+	}
+
 	function setupSinglePageApplication() {
 		getIntraCode();
 		
@@ -149,6 +163,17 @@
 				startGame(userData);
 			}
 		});
+		
+		button2fa = document.getElementById('2fa-button');
+		button2fa.addEventListener('click', () => {
+			// show qr code in a image in the screen
+			qrcode = document.getElementById('2fa-button-qrcode');
+			console.log("Requesting QR code...")
+			qrcode_data = getQrcode();
+			qrcode.data = qrcode_data;
+			qrcode.style.display = "block";
+		});
+
 		loginGuest = document.getElementById('login-guest');
 		loginGuest.addEventListener('click', () => {
 			goToMenu();
