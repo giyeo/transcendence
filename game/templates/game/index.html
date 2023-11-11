@@ -136,18 +136,34 @@
 		}
 	}
 
-	async function getQrcode() {
+	async function verifyOTP(otp) {
 		return new Promise((resolve, reject) => {
-				fetch('http://127.0.0.1:8000/qrcode?login=' + userData.login)
+				fetch('http://127.0.0.1:8000/verifyOTP?login=' + userData.login + '&otp=' + otp)
 					.then(response => {
 						console.log("QR code received")
-						return response.text();
-						
+						return response.status;
+					})
+					.then(data => {
+						resolve(data)
 					})
 					.catch(error => {
 						console.error('There was a problem with the fetch operation:', error);
+						resolve(error);
 					});
 			})
+	}	
+
+	async function sendOTP() {
+		otpText = document.getElementById('2fa-input');
+		qrcodeImage = document.getElementById('2fa-button-qrcode');
+		inputOTP = document.getElementById('inputOTP')
+		a = await verifyOTP(otpText.value)
+		console.log(a)
+		if(a === 200) {
+			otpText.value = ""
+			qrcodeImage.style.display = "none"
+			inputOTP.style.display = "none"
+		}
 	}
 
 	function setupSinglePageApplication() {
@@ -165,13 +181,17 @@
 		});
 		
 		button2fa = document.getElementById('2fa-button');
+		qrcodeImage = document.getElementById('2fa-button-qrcode');
 		button2fa.addEventListener('click', () => {
 			// show qr code in a image in the screen
-			qrcode = document.getElementById('2fa-button-qrcode');
 			console.log("Requesting QR code...")
-			qrcode_data = getQrcode();
-			qrcode.data = qrcode_data;
-			qrcode.style.display = "block";
+			qrcodeImage.src = '/qrcode?login=' + userData.login
+			qrcodeImage.style.display = "block";
+		});
+		
+		sendOTPHandler = document.getElementById('sendOTP');
+		sendOTPHandler.addEventListener('click', () => {
+			sendOTP();
 		});
 
 		loginGuest = document.getElementById('login-guest');

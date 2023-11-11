@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 import requests
 from io import BytesIO
+import os
+import base64
 
 from .models import UserModel
 
@@ -14,7 +16,7 @@ def pong(request):
 def getToken(code):
     url = "https://api.intra.42.fr/oauth/token"
     app_id = "u-s4t2ud-f7b0462e2cbc6c9ad253ff148ce9c2f02ab78c16e04b5f2351248a0f6ecc0e7f"
-    secret = "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"
+    secret = os.getenv("intra_secret")
     data = {
         "grant_type": "authorization_code",
         "client_id": app_id,
@@ -72,3 +74,15 @@ def getQRCode(request):
     else:
         error_data = {'error': 'Missing or invalid "login" parameter'}
         return JsonResponse(error_data, status=400)
+
+def verifyOTP(request):
+    login = request.GET.get('login')
+    otp = request.GET.get('otp')
+    if login:
+        user = UserModel.objects.get(login=login)
+        totp = pyotp.TOTP(user.auth_secret)
+        if otp and totp.verify(otp):
+            user.twofa_enabled = True
+            user.save()
+            return JsonResponse({}, status=200)
+    return JsonResponse({}, status=403)

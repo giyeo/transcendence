@@ -4,5 +4,8 @@
 <img id="image" src="{% static 'game/favicon.ico' %}" alt="placeholder" height="300px" width="300px">
 <button id="find-match">Find match</button>
 <button id="2fa-button">Toggle 2FA</button>
-<img id="2fa-button-qrcode"></img>
-<input id="2fa-input" type="text" placeholder="2FA code"></input>
+<img id="2fa-button-qrcode" height="300" width="300" style="display: none;"></img>
+<div id="inputOTP">
+	<input id="2fa-input" type="text" placeholder="2FA code"></input>
+	<button id="sendOTP">Enter</input>
+</div>
