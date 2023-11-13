@@ -3,86 +3,105 @@ from django.http import JsonResponse, HttpResponse
 import requests
 from io import BytesIO
 import os
-import base64
-
-from .models import UserModel
 
 import pyotp, qrcode
-# Create your views here.
 
-def pong(request):
+from django.contrib.auth import get_user_model
+from .models import CustomUser
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.tokens import AccessToken
+
+
+def index(request):
     return render(request, 'game/index.html')
 
+
+INTRA_API_URL = "https://api.intra.42.fr"
+INTRA_API_URL_TOKEN = INTRA_API_URL + "/oauth/token"
+REDIRECT_URI = "http://127.0.0.1:8000/game"
+INTRA_API_ID = "u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d"
+INTRA_API_SECRET = os.getenv("intra_secret")
+
 def getToken(code):
-    url = "https://api.intra.42.fr/oauth/token"
-    app_id = "u-s4t2ud-f7b0462e2cbc6c9ad253ff148ce9c2f02ab78c16e04b5f2351248a0f6ecc0e7f"
-    secret = os.getenv("intra_secret")
     data = {
         "grant_type": "authorization_code",
-        "client_id": app_id,
-        "client_secret": secret,
+        "client_id": INTRA_API_ID,
+        "client_secret": INTRA_API_SECRET,
         "code": code,
-        "redirect_uri": "http://127.0.0.1:8000/",
+        "redirect_uri": REDIRECT_URI,
     }
-
-    response = requests.post(url, data=data)
-
+    try:
+        response = requests.post(INTRA_API_URL_TOKEN, data=data)
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({}, status=500)
     if response.status_code == 200:
         token_data = response.json()
-        print("Access Token:", token_data["access_token"])
-        return token_data["access_token"]
+        return token_data.get("access_token")
     else:
         print("Error:", response.status_code, response.text)
 
+
+@api_view(['GET'])
 def userData(request):
     code = request.GET.get('code')
-    if code is not None:
-        token = getToken(code)
-        data = None
-        url = "https://api.intra.42.fr/v2/me"
-        headers = {
-            "Authorization": "Bearer " + token
-        }
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            try:
-                user = UserModel.objects.get(login=data.get('login'))
-            except UserModel.DoesNotExist:
-                userModel = UserModel(name=data.get('displayname'), login=data.get('login'))
-                userModel.save()
-            #print("User data:", data)
-        else:
-            print("Error:", response.status_code, response.text)
-        return JsonResponse(data)
-    else:
-        # Handle the case when 'code' parameter is not present
-        error_data = {'error': 'Missing or invalid "code" parameter'}
-        return JsonResponse(error_data, status=400)
-
-def getQRCode(request):
-    login = request.GET.get('login')
-    if login:
-        user = UserModel.objects.get(login=login)
-        totp = pyotp.TOTP(user.auth_secret)
-        uri = totp.provisioning_uri("localhost:8000", issuer_name="transcendence")
-        img = qrcode.make(uri)
-        buffer = BytesIO()
-        img.save(buffer)
-        buffer.seek(0)
-        return HttpResponse(buffer, content_type="image/png")
-    else:
-        error_data = {'error': 'Missing or invalid "login" parameter'}
-        return JsonResponse(error_data, status=400)
-
-def verifyOTP(request):
-    login = request.GET.get('login')
-    otp = request.GET.get('otp')
-    if login:
-        user = UserModel.objects.get(login=login)
-        totp = pyotp.TOTP(user.auth_secret)
-        if otp and totp.verify(otp):
-            user.twofa_enabled = True
+    if code is None:
+        return
+    token = getToken(code)
+    data = None
+    url = INTRA_API_URL + "/v2/me"
+    headers = {
+        "Authorization": "Bearer " + token
+    }
+    try:
+        r = requests.get(url, headers=headers)
+        r.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({}, status=500)
+    if r.status_code == 200:
+        data = r.json()
+        try:
+            user = get_user_model().objects.get(username=data.get('login'))
+            user_local = CustomUser.objects.get(login=data.get('login'))
+        except (get_user_model().DoesNotExist, CustomUser.DoesNotExist):
+            user = get_user_model().objects.create(username=data.get('login'))
+            user_local = CustomUser.objects.create(login=data.get('login'))
             user.save()
-            return JsonResponse({}, status=200)
+            user_local.save()
+        data["access_token"] = str(AccessToken.for_user(user))
+    else:
+        print("Error:", r.status_code, r.text)
+    return JsonResponse(data)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def getQRCode(request):
+    try:
+        user_local = CustomUser.objects.get(id=request.user.id)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({}, status=403)
+    totp = pyotp.TOTP(user_local.auth_secret)
+    uri = totp.provisioning_uri("localhost:8000", issuer_name="transcendence")
+    img = qrcode.make(uri)
+    buffer = BytesIO()
+    img.save(buffer)
+    buffer.seek(0)
+    return HttpResponse(buffer, content_type="image/png")
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def verifyOTP(request):
+    try:
+        user_local = CustomUser.objects.get(id=request.user.id)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({}, status=403)
+    otp = request.GET.get('otp')
+    totp = pyotp.TOTP(user_local.auth_secret)
+    if otp and totp.verify(otp):
+        user_local.twofa_enabled = True
+        user_local.save()
+        return JsonResponse({}, status=200)
     return JsonResponse({}, status=403)

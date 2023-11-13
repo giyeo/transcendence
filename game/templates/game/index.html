@@ -21,7 +21,7 @@
 	<div id="loading" style="display: none;">
 		{% include './loading.html' %}
 	</div>
-	<!-- Wait click on button start game to start game  -->
+
 	<div id="menu" style="display: none;">
 		{% include './menu.html' %}
 	</div>
@@ -36,8 +36,10 @@
 	var userData;
 	var randomUserData;
 	var intraCode;
+
 	function getIntraCode() {
 		const urlParams = new URLSearchParams(window.location.search);
+		console.log(urlParams);
 		if (urlParams.has('code')) {
 			intraCode = urlParams.get('code');
 			goToMenu();
@@ -47,9 +49,11 @@
 		}
 	}
 
+	API_URL = "http://127.0.0.1:8000"
+
 	function getUserData() {
 		return new Promise((resolve, reject) => {
-			const apiUrl = 'http://127.0.0.1:8000/data';
+			const apiUrl = API_URL + '/game/data';
 
 			// Append the 'code' parameter to the URL
 			const apiUrlWithParams = `${apiUrl}?code=${encodeURIComponent(intraCode)}`;
@@ -65,7 +69,7 @@
 				.then(data => {
 					// Handle the data from the response
 					userData = data
-					//console.log('Data from Django:', data);
+					console.log('Data from Django:', data);
 					resolve(data)
 				})
 				.catch(error => {
@@ -128,7 +132,7 @@
 			mountMenu();
 			document.getElementById("loading").style.display = "none";
 			document.getElementById("menu").style.display = "block";
-			history.pushState({page: 'menu'}, 'menu', '/menu/');
+			//history.pushState({page: 'menu'}, 'menu', '/menu/');
 		} catch (error) {
 			console.error('Error getting user data:', error);
 			document.getElementById("login").style.display = "block";
@@ -138,7 +142,7 @@
 
 	async function verifyOTP(otp) {
 		return new Promise((resolve, reject) => {
-				fetch('http://127.0.0.1:8000/verifyOTP?login=' + userData.login + '&otp=' + otp)
+				fetch(API_URL + '/game/verifyOTP?&otp=' + otp, {headers: {'Authorization': 'Bearer ' + userData.access_token}})
 					.then(response => {
 						console.log("QR code received")
 						return response.status;
@@ -151,7 +155,7 @@
 						resolve(error);
 					});
 			})
-	}	
+	}
 
 	async function sendOTP() {
 		otpText = document.getElementById('2fa-input');
@@ -166,10 +170,31 @@
 		}
 	}
 
+	async function getQRCode() {
+		qrcodeImage = document.getElementById('2fa-button-qrcode');
+		qrcode = await new Promise((resolve, reject) => {
+				fetch(API_URL + '/game/qrcode', {headers: {'Authorization': 'Bearer ' + userData.access_token}})
+					.then(response => {
+						console.log("QR code received")
+						return response.blob();
+					})
+					.then(blob => {
+						resolve(blob)
+					})
+					.catch(error => {
+						console.error('There was a problem with the fetch operation:', error);
+						resolve(error);
+					});
+			})
+
+		qrcodeImage.src = URL.createObjectURL(qrcode);
+		qrcodeImage.style.display = "block";
+	}
+
 	function setupSinglePageApplication() {
 		getIntraCode();
 		
-		history.pushState({page: 'login'}, 'login', '/login/');
+		//history.pushState({page: 'login'}, 'login', '/login/');
 
 		findMatch = document.getElementById('find-match');
 		findMatch.addEventListener('click', () => {
@@ -181,12 +206,8 @@
 		});
 		
 		button2fa = document.getElementById('2fa-button');
-		qrcodeImage = document.getElementById('2fa-button-qrcode');
 		button2fa.addEventListener('click', () => {
-			// show qr code in a image in the screen
-			console.log("Requesting QR code...")
-			qrcodeImage.src = '/qrcode?login=' + userData.login
-			qrcodeImage.style.display = "block";
+			getQRCode()
 		});
 		
 		sendOTPHandler = document.getElementById('sendOTP');
@@ -203,23 +224,23 @@
 		loginIntra = document.getElementById('login-intra');
 		loginIntra.addEventListener('click', () => {
 			console.log("Redirecting...");
-			window.location.href = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-f7b0462e2cbc6c9ad253ff148ce9c2f02ab78c16e04b5f2351248a0f6ecc0e7f&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2F&response_type=code";
+			window.location.href = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2Fgame&response_type=code";
 		});
 	}
 
-	window.addEventListener('popstate', (event) => {
-		if (event.state === null) {
-			return;
-		}
-		if (event.state.page === 'login') {
-			document.getElementById("login").style.display = "block";
-			document.getElementById("menu").style.display = "none";
-		}
-		if (event.state.page === 'menu') {
-			document.getElementById("login").style.display = "none";
-			document.getElementById("menu").style.display = "block";
-		}
-	});
+	//window.addEventListener('popstate', (event) => {
+	//	if (event.state === null) {
+	//		return;
+	//	}
+	//	if (event.state.page === 'login') {
+	//		document.getElementById("login").style.display = "block";
+	//		document.getElementById("menu").style.display = "none";
+	//	}
+	//	if (event.state.page === 'menu') {
+	//		document.getElementById("login").style.display = "none";
+	//		document.getElementById("menu").style.display = "block";
+	//	}
+	//});
 
 	document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 </script>
