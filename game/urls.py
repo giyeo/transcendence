@@ -6,4 +6,5 @@ urlpatterns = [
     path('data', views.userData),
     path('qrcode', views.getQRCode),
 	path('verifyOTP', views.verifyOTP),
+	path('verifyLoginOTP', views.verifyLoginOTP)
 ]

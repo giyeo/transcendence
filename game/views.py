@@ -69,14 +69,16 @@ def userData(request):
             user_local = CustomUser.objects.create(login=data.get('login'))
             user.save()
             user_local.save()
-        data["access_token"] = str(AccessToken.for_user(user))
+        if not user_local.twofa_enabled:
+            data["access_token"] = str(AccessToken.for_user(user))
+        data["user_id"] = str(user.id)
     else:
         print("Error:", r.status_code, r.text)
     return JsonResponse(data)
 
 
 @api_view(['GET'])
-@permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated))
 def getQRCode(request):
     try:
         user_local = CustomUser.objects.get(id=request.user.id)
@@ -92,7 +94,7 @@ def getQRCode(request):
 
 
 @api_view(['GET'])
-@permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated))
 def verifyOTP(request):
     try:
         user_local = CustomUser.objects.get(id=request.user.id)
@@ -104,4 +106,17 @@ def verifyOTP(request):
         user_local.twofa_enabled = True
         user_local.save()
         return JsonResponse({}, status=200)
+    return JsonResponse({}, status=403)
+
+@api_view(['GET'])
+def verifyLoginOTP(request):
+    otp = request.GET.get('otp')
+    user_id = request.GET.get('userId')
+    user = get_user_model().objects.get(id=user_id)
+    user_local = CustomUser.objects.get(id=user_id)
+    if otp:
+        totp = pyotp.TOTP(user_local.auth_secret)
+        if totp.verify(otp):
+            data = {"access_token": str(AccessToken.for_user(user))}
+            return JsonResponse(data, status=200)
     return JsonResponse({}, status=403)

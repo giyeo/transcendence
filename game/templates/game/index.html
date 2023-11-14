@@ -21,6 +21,10 @@
 	<div id="loading" style="display: none;">
 		{% include './loading.html' %}
 	</div>
+	
+	<div id="login_otp" style="display: none;">
+		{% include './otp_login.html' %}
+	</div>
 
 	<div id="menu" style="display: none;">
 		{% include './menu.html' %}
@@ -129,9 +133,15 @@
 				await getUserData();
 			else
 				await getRandomUserData();
-			mountMenu();
-			document.getElementById("loading").style.display = "none";
-			document.getElementById("menu").style.display = "block";
+			if (!userData.access_token) {
+				document.getElementById("loading").style.display = "none";
+				document.getElementById("login_otp").style.display = "block";
+			}
+			else {
+				mountMenu();
+				document.getElementById("loading").style.display = "none";
+				document.getElementById("menu").style.display = "block";
+			}
 			//history.pushState({page: 'menu'}, 'menu', '/menu/');
 		} catch (error) {
 			console.error('Error getting user data:', error);
@@ -157,16 +167,39 @@
 			})
 	}
 
+	async function verifyLoginOTP(otp) {
+		return new Promise((resolve, reject) => {
+				fetch(API_URL + '/game/verifyLoginOTP?&otp=' + otp + '&userId=' + userData.user_id)
+					.then(response => {
+						console.log(response)
+						return response.json();
+					})
+					.then(data => {
+						if (data.access_token) {
+							userData.access_token = data.access_token;
+							mountMenu();
+							document.getElementById("login_otp").style.display = "none";
+							document.getElementById("menu").style.display = "block";
+						}
+						resolve(data.access_token)
+					})
+					.catch(error => {
+						console.error('There was a problem with the fetch operation:', error);
+						resolve(error);
+					});
+			})
+	}
+
 	async function sendOTP() {
-		otpText = document.getElementById('2fa-input');
+		otpText = document.getElementById('2fa-activation-input');
 		qrcodeImage = document.getElementById('2fa-button-qrcode');
-		inputOTP = document.getElementById('inputOTP')
+		inputActivationOTP = document.getElementById('input-activation-OTP')
 		a = await verifyOTP(otpText.value)
 		console.log(a)
 		if(a === 200) {
 			otpText.value = ""
 			qrcodeImage.style.display = "none"
-			inputOTP.style.display = "none"
+			inputActivationOTP.style.display = "none"
 		}
 	}
 
@@ -220,6 +253,11 @@
 			goToMenu();
 		});
 
+		loginOTP = document.getElementById('send-login-OTP');
+		otpText = document.getElementById('2fa-login-input');
+		loginOTP.addEventListener('click', () => {
+			verifyLoginOTP(otpText.value);
+		});
 
 		loginIntra = document.getElementById('login-intra');
 		loginIntra.addEventListener('click', () => {
