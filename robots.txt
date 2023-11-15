@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /private/
+Disallow: /secret-page/
+Allow: /public/
+Sitemap: http://127.0.0.1/game/sitemap.xml
