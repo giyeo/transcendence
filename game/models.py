@@ -7,3 +7,4 @@ class CustomUser(models.Model):
     login = models.CharField(max_length=42, unique=True)
     auth_secret = models.CharField(max_length=32, default=pyotp.random_base32())
     twofa_enabled = models.BooleanField(default=False)
+    language = models.CharField(max_length=2, default="en")

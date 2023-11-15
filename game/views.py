@@ -120,3 +120,28 @@ def verifyLoginOTP(request):
             data = {"access_token": str(AccessToken.for_user(user))}
             return JsonResponse(data, status=200)
     return JsonResponse({}, status=403)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def getLanguagues(request):
+    try:
+        user_local = CustomUser.objects.get(id=request.user.id)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({}, status=403)
+    return JsonResponse({'lang': user_local.langugage})
+
+
+@api_view (['PATCH'])
+@permission_classes((IsAuthenticated,))
+def updateLanguage(request):
+    try:
+        user_local = CustomUser.objects.get(id=request.user.id)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({}, status=403)
+    lang = request.GET.get('lang')
+    if lang and lang in ['en', 'fr', 'pt']:
+        user_local.langugage = lang
+        user_local.save()
+        return JsonResponse({'lang': user_local.langugage})
+    return JsonResponse({}, status=400)

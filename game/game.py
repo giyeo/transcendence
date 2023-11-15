@@ -14,7 +14,7 @@ execs = 0
 #garanta que só bata 1 vez a bola por paddle
 def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn, gamemode):
 	global paddleSize, execs
-	
+
 	execs += 1
 	if(gamemode == 'crazyPaddleSizes' and execs % (90 * 3) == 0):
 		paddleSize = random.choice([100, 150])
@@ -26,7 +26,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 	# 	bY = 20
 	# else:
 	# 	bY = ballY - 50
-	
+
 	# print(aY, bY, ballX, ballY, ballVelocity)
 
 	ballX += ballVelocity * math.cos(ballRad)
