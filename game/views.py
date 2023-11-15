@@ -78,7 +78,7 @@ def userData(request):
 
 
 @api_view(['GET'])
-@permission_classes((IsAuthenticated))
+@permission_classes((IsAuthenticated,))
 def getQRCode(request):
     try:
         user_local = CustomUser.objects.get(id=request.user.id)
@@ -94,7 +94,7 @@ def getQRCode(request):
 
 
 @api_view(['GET'])
-@permission_classes((IsAuthenticated))
+@permission_classes((IsAuthenticated,))
 def verifyOTP(request):
     try:
         user_local = CustomUser.objects.get(id=request.user.id)
