@@ -7,7 +7,7 @@ import os
 import pyotp, qrcode
 
 from django.contrib.auth import get_user_model
-from .models import CustomUser
+from .models import CustomUser, Queue
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -145,3 +145,16 @@ def updateLanguage(request):
         user_local.save()
         return JsonResponse({'lang': user_local.language})
     return JsonResponse({}, status=400)
+
+
+
+@api_view (['GET'])
+@permission_classes((IsAuthenticated,))
+def enterQueue(request):
+    matchType = request.GET.get('matchType')
+    gamemode = request.GET.get('gamemode')
+    print(request.user.id, matchType, gamemode)
+    queue = Queue.objects.create(user_id=request.user.id, login=request.user.username, match_type=matchType, gamemode=gamemode)
+    queue.save()
+    #login, matchType, gamemode
+    return JsonResponse({}, status=200)

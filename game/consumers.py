@@ -4,15 +4,36 @@ import json
 from . import match
 import time
 import threading
+from .models import Queue 
 count = 0
 match_name = None
 values = {}
 queue = []
 matches = {}
+matchPlayers = {}
+
+tournaments = {}
 
 class GameConsumer(WebsocketConsumer):
     def connect(self):
         global match_name, count
+        #chamar tipo de matchjmaking especifico
+        userId = Queue.objects.last().user_id
+        login = Queue.objects.last().login
+        matchType = Queue.objects.last().match_type
+        gamemode = Queue.objects.last().gamemode
+        if matchType == '1v1':
+            player = self.simpleMatch(login)
+        # elif matchType == 'tournament':
+        #     player = self.tournamentMatch()
+        else:
+            self.close()
+        print("CONNECTED, CHANNEL:", self.channel_name, match_name, player, count)
+        self.accept()
+        self.send(text_data=json.dumps({"type":"handshake", "player": player, "match": match_name}))
+
+    def simpleMatch(self, login):
+        global count, match_name
         new_match = False
         if count % 2 == 0:
             match_name = "match" + str(count // 2)
@@ -21,20 +42,21 @@ class GameConsumer(WebsocketConsumer):
             queue.append(self.channel_name)
             matches[match_name] = []
             matches[match_name].append(self.channel_name)
+            matchPlayers[match_name] = []
+            matchPlayers[match_name].append(login)
         else:
             player = 'b'
             new_match = True
             queue.clear()
             matches[match_name].append(self.channel_name)
-        print("CONNECTED, CHANNEL:", self.channel_name, match_name, player, count)
+            matchPlayers[match_name].append(login)
+        count += 1
         async_to_sync(self.channel_layer.group_add)(
             match_name, self.channel_name
         )
-        count += 1
-        self.accept()
-        self.send(text_data=json.dumps({"type":"handshake", "player": player, "match": match_name}))
         if new_match:
             self.newMatch(match_name)
+        return player
 
     def newMatch(self, match_name):
         thread = threading.Thread(target=self.gameLoop, args=(match_name,))

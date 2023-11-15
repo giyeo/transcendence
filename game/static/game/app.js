@@ -236,6 +236,7 @@ function fabs(x) {
 let gameSocket;
 
 function startWebSockets() {
+	//postar no banco que estou prepardo e a mensagem que tu vai recebert sou eu em?
 	let url = `ws://${window.location.host}/ws/socket-server/`
 	gameSocket = new WebSocket(url);
 	console.log("gameSocket: ", gameSocket);
@@ -254,7 +255,22 @@ function startEventListeners() {
 	// document.addEventListener('resize', startGame);
 }
 
+async function enterQueue() {
+	return new Promise((resolve, reject) => {
+		fetch(API_URL + `/game/enterQueue?matchType=${"1v1"}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + userData.access_token}})
+			.then(response => {
+				console.log(response)
+				resolve(response)
+			})
+			.catch(error => {
+				console.error('There was a problem with the fetch operation:', error);
+				resolve(error);
+			});
+	})
+}
+
 async function startGame(userData) {
+	await enterQueue(userData);
 	startWebSockets();
 	startEventListeners();
 	setupGame();
