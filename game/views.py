@@ -14,7 +14,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import AccessToken
 
 
-def index(request):
+def game(request):
     return render(request, 'game/index.html')
 
 
