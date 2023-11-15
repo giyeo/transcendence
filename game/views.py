@@ -141,7 +141,7 @@ def updateLanguage(request):
         return JsonResponse({}, status=403)
     lang = request.GET.get('lang')
     if lang and lang in ['en', 'fr', 'pt']:
-        user_local.langugage = lang
+        user_local.language = lang
         user_local.save()
-        return JsonResponse({'lang': user_local.langugage})
+        return JsonResponse({'lang': user_local.language})
     return JsonResponse({}, status=400)

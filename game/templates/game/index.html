@@ -93,11 +93,12 @@
 		"loading": {
 			"en": "Loading...",
 			"pt": "Esperando...",
-			"fr": "????...",
+			"fr": "Chargement...",
 		},
 	};
 	var selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
-	document.getElementById("languageSelect").value = selectedLanguage;
+	document.getElementById("languageSelectMenu").value = selectedLanguage;
+	document.getElementById("languageSelectLogin").value = selectedLanguage;
 
 	function getIntraCode() {
 		const urlParams = new URLSearchParams(window.location.search);
@@ -322,44 +323,51 @@
 			console.log("Redirecting...");
 			window.location.href = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2Fgame&response_type=code";
 		});
-		console.log('ccc')
 
-		languageSelection = document.getElementById('languageSelect');
-		languageSelection.addEventListener('change', () => {
-			selectedLanguage = document.getElementById("languageSelect").value;
-			console.log('bbb')
+		languageSelectLogin = document.getElementById('languageSelectLogin');
+		languageSelectLogin.addEventListener('change', () => {
+			selectedLanguage = languageSelectLogin.value;
 			if (["en", "pt", "fr"].includes(selectedLanguage)) {
 				localStorage.setItem("selectedLanguage", selectedLanguage);
 				updateLanguage();
 			}
 		})
+
+		languageSelectMenu = document.getElementById('languageSelectMenu');
+		languageSelectMenu.addEventListener('change', () => {
+			selectedLanguage = languageSelectMenu.value;
+			if (["en", "pt", "fr"].includes(selectedLanguage)) {
+				localStorage.setItem("selectedLanguage", selectedLanguage);
+				updateLanguage();
+				sendLanguage();
+			}
+		})
+
 		updateLanguage();
 	}
 
 	function updateLanguage() {
 		var elementsToUpdate = document.querySelectorAll('.translation');
-
 		elementsToUpdate.forEach(function(element) {
 			element.innerHTML = translations[element.id][selectedLanguage];
 		});
 	}
 
-	// async function sendLanguage() {
-	// 	console.log("entrou sen send")
-	// 	return await new Promise((resolve, reject) => {
-	// 			fetch(API_URL + '/game/updateLanguage' + '?lang=' + selectedLanguage, {method: 'PATCH', headers: {'Authorization': 'Bearer ' + userData.access_token}})
-	// 				.then(response => {
-	// 					return response.json();
-	// 				})
-	// 				.then(data => {
-	// 					resolve(data)
-	// 				})
-	// 				.catch(error => {
-	// 					console.error('There was a problem with the fetch operation:', error);
-	// 					resolve(error);
-	// 				});
-	// 		})
-	// }
+	async function sendLanguage() {
+		return await new Promise((resolve, reject) => {
+				fetch(API_URL + '/game/updateLanguage' + '?lang=' + selectedLanguage, {method: 'PATCH', headers: {'Authorization': 'Bearer ' + userData.access_token}})
+					.then(response => {
+						return response.json();
+					})
+	 				.then(data => {
+	 					resolve(data)
+	 				})
+	 				.catch(error => {
+	 					console.error('There was a problem with the fetch operation:', error);
+	 					resolve(error);
+	 				});
+	 		})
+	}
 
 	//window.addEventListener('popstate', (event) => {
 	//	if (event.state === null) {

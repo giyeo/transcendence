@@ -7,6 +7,6 @@ urlpatterns = [
     path('qrcode', views.getQRCode),
 	path('verifyOTP', views.verifyOTP),
 	path('verifyLoginOTP', views.verifyLoginOTP),
-	path('updateLanguagues', views.updateLanguage),
-	path('getLanguagues', views.getLanguagues)
+	path('updateLanguage', views.updateLanguage),
+	path('getLanguague', views.getLanguagues)
 ]
