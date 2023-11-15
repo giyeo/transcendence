@@ -34,7 +34,7 @@
 	<div id="loading" style="display: none;">
 		{% include './loading.html' %}
 	</div>
-	
+
 	<div id="login_otp" style="display: none;">
 		{% include './otp_login.html' %}
 	</div>
@@ -46,6 +46,8 @@
 	<div id="game" style="display: none;">
 		{% include './game.html' %}
 	</div>
+
+
 </body>
 </html>
 
@@ -53,6 +55,63 @@
 	var userData;
 	var randomUserData;
 	var intraCode;
+
+
+	const translations = {
+		"login-guest": {
+			"en": "Play as Guest",
+			"pt": "Jogar como convidado",
+			"fr": "Jouer en tant qu'invité",
+		},
+		"login-intra": {
+			"en": "Play as 42",
+			"pt": "Jogar como 42",
+			"fr": "Jouer en tant que 42",
+		},
+		"find-match": {
+			"en": "Find Match",
+			"pt": "Encontrar partida",
+			"fr": "Trouver une partie",
+		},
+		"2fa-button": {
+			"en": "Toggle 2FA",
+			"pt": "Alternar 2FA",
+			"fr": "Basculer la 2FA",
+		},
+		"sendOTP": {
+			"en": "Enter",
+			"pt": "Entrar",
+			"fr": "Entrer",
+		},
+		"send-login-OTP": {
+			"en": "Enter",
+			"pt": "Entrar",
+			"fr": "Entrer",
+		},
+		"wait-other-players": {
+			"en": "Waiting for other players...",
+			"pt": "Aguardando outros jogadores...",
+			"fr": "En attente d'autres joueurs...",
+		},
+		"game-over": {
+			"en": "Game Over",
+			"pt": "Fim de jogo",
+			"fr": "Fin du jeu",
+		},
+		"2fa-login-input": {
+			"en": "2FA code",
+			"pt": "Código 2FA",
+			"fr": "Code 2FA",
+		},
+		"loading": {
+			"en": "Loading...",
+			"pt": "Esperando...",
+			"fr": "Chargement...",
+		},
+	};
+	var selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
+	document.getElementById("languageSelectMenu").value = selectedLanguage;
+	document.getElementById("languageSelectLogin").value = selectedLanguage;
 
 	function getIntraCode() {
 		const urlParams = new URLSearchParams(window.location.search);
@@ -110,7 +169,7 @@
 			displayname = userData.displayname
 			login = userData.login
 		}
-		
+
 		document.getElementById("image").src = img;
 		document.getElementById("displayName").innerText = displayname;
 		document.getElementById("loginName").innerText = login;
@@ -239,7 +298,7 @@
 
 	function setupSinglePageApplication() {
 		getIntraCode();
-		
+
 		//history.pushState({page: 'login'}, 'login', '/login/');
 
 		findMatch = document.getElementById('find-match');
@@ -250,12 +309,12 @@
 				startGame(userData);
 			}
 		});
-		
+
 		button2fa = document.getElementById('2fa-button');
 		button2fa.addEventListener('click', () => {
 			getQRCode()
 		});
-		
+
 		sendOTPHandler = document.getElementById('sendOTP');
 		sendOTPHandler.addEventListener('click', () => {
 			sendOTP();
@@ -277,6 +336,50 @@
 			console.log("Redirecting...");
 			window.location.href = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2Fgame&response_type=code";
 		});
+
+		languageSelectLogin = document.getElementById('languageSelectLogin');
+		languageSelectLogin.addEventListener('change', () => {
+			selectedLanguage = languageSelectLogin.value;
+			if (["en", "pt", "fr"].includes(selectedLanguage)) {
+				localStorage.setItem("selectedLanguage", selectedLanguage);
+				updateLanguage();
+			}
+		})
+
+		languageSelectMenu = document.getElementById('languageSelectMenu');
+		languageSelectMenu.addEventListener('change', () => {
+			selectedLanguage = languageSelectMenu.value;
+			if (["en", "pt", "fr"].includes(selectedLanguage)) {
+				localStorage.setItem("selectedLanguage", selectedLanguage);
+				updateLanguage();
+				sendLanguage();
+			}
+		})
+
+		updateLanguage();
+	}
+
+	function updateLanguage() {
+		var elementsToUpdate = document.querySelectorAll('.translation');
+		elementsToUpdate.forEach(function(element) {
+			element.innerHTML = translations[element.id][selectedLanguage];
+		});
+	}
+
+	async function sendLanguage() {
+		return await new Promise((resolve, reject) => {
+				fetch(API_URL + '/game/updateLanguage' + '?lang=' + selectedLanguage, {method: 'PATCH', headers: {'Authorization': 'Bearer ' + userData.access_token}})
+					.then(response => {
+						return response.json();
+					})
+	 				.then(data => {
+	 					resolve(data)
+	 				})
+	 				.catch(error => {
+	 					console.error('There was a problem with the fetch operation:', error);
+	 					resolve(error);
+	 				});
+	 		})
 	}
 
 	//window.addEventListener('popstate', (event) => {
@@ -292,6 +395,5 @@
 	//		document.getElementById("menu").style.display = "block";
 	//	}
 	//});
-
 	document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 </script>

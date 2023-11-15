@@ -8,10 +8,12 @@ sitemaps = {
 }
 
 urlpatterns = [
-    path('', views.game, name='game'),
-    path('data', views.userData),
-    path('qrcode', views.getQRCode),
+  path('', views.game, name='game'),
+  path('data', views.userData),
+  path('qrcode', views.getQRCode),
 	path('verifyOTP', views.verifyOTP),
 	path('verifyLoginOTP', views.verifyLoginOTP),
+	path('updateLanguage', views.updateLanguage),
+	path('getLanguague', views.getLanguagues)
 	path('sitemap.xml', sitemap,  {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
 ]

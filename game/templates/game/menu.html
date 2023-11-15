@@ -2,10 +2,15 @@
 <p id="displayName">Welcome Guest</p>
 <p id="loginName">Guest</p>
 <img id="image" src="{% static 'game/favicon.ico' %}" alt="placeholder" height="300px" width="300px">
-<button id="find-match">Find match</button>
-<button id="2fa-button">Toggle 2FA</button>
+<button id="find-match" class="translation">Find match</button>
+<button id="2fa-button" class="translation">Toggle 2FA</button>
 <img id="2fa-button-qrcode" height="300" width="300" style="display: none;"></img>
 <div id="input-activation-OTP">
 	<input id="2fa-activation-input" type="text" placeholder="2FA code"></input>
-	<button id="sendOTP">Enter</input>
+	<button id="sendOTP" class="translation">Enter</input>
 </div>
+<select id="languageSelectMenu">
+	<option value="en">🇬🇧 English</option>
+	<option value="pt">🇧🇷 Portuguese</option>
+	<option value="fr">🇫🇷 French</option>
+</select>
