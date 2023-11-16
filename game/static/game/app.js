@@ -138,8 +138,6 @@ async function onCloseWebSocket() {
 	element.setAttribute('style', 'display: block; left: 0px; top: 280px');
 	element.innerHTML = `Game Over!`;
 	await sleep(1000);
-	document.getElementById("menu").style.display = "block";
-	document.getElementById("game").style.display = "none";
 	element.setAttribute('style', 'display: block; left: 360px; top: 280px');
 	container.innerHTML = '';
 	ballPositionHistory = [];
@@ -275,7 +273,7 @@ async function startGame(userData) {
 	startEventListeners();
 	setupGame();
 	await countDown();
-	gameLoop();
+	await gameLoop();
 }
 
 //____________________________INPUT_BEGIN____________________________
