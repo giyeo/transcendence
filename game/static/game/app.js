@@ -234,14 +234,8 @@ function fabs(x) {
 let gameSocket;
 
 function startWebSockets() {
-	//postar no banco que estou prepardo e a mensagem que tu vai recebert sou eu em?
 	let url = `ws://${window.location.host}/ws/socket-server/`
 	gameSocket = new WebSocket(url);
-	console.log("gameSocket: ", gameSocket);
-	// Show the loadingScreen while waiting for the WebSocket to open
-	if (gameSocket.readyState !== WebSocket.OPEN) {
-		loadingScreen.style.display = 'block';
-	}
 }
 
 function startEventListeners() {
@@ -254,6 +248,7 @@ function startEventListeners() {
 }
 
 async function enterQueue() {
+	loadingScreen.style.display = 'block';
 	return new Promise((resolve, reject) => {
 		fetch(API_URL + `/game/enterQueue?matchType=${"1v1"}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + userData.access_token}})
 			.then(response => {
