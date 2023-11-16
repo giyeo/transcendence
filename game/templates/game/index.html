@@ -27,26 +27,12 @@
 	<script src="{% static 'game/app.js' %}" defer></script>
 </head>
 <body>
-	<div id="login">
-		{% include './login.html' %}
-	</div>
-
-	<div id="loading" style="display: none;">
-		{% include './loading.html' %}
-	</div>
-
-	<div id="login_otp" style="display: none;">
-		{% include './otp_login.html' %}
-	</div>
-
-	<div id="menu" style="display: none;">
-		{% include './menu.html' %}
-	</div>
-
-	<div id="game" style="display: none;">
-		{% include './game.html' %}
-	</div>
-
+	
+	<section id="login">	{% include './login.html' %}	</section>
+	<section id="loading">	{% include './loading.html' %}	</section>
+	<section id="login_otp">{% include './otp_login.html' %}</section>
+	<section id="menu">		{% include './menu.html' %}		</section>
+	<section id="game">		{% include './game.html' %}		</section>
 
 </body>
 </html>
@@ -115,10 +101,8 @@
 
 	function getIntraCode() {
 		const urlParams = new URLSearchParams(window.location.search);
-		console.log(urlParams);
 		if (urlParams.has('code')) {
 			intraCode = urlParams.get('code');
-			goToMenu();
 		}
 		if (urlParams.has('error')) {
 			console.log('Code:', urlParams.get('error'));
@@ -169,7 +153,6 @@
 			displayname = userData.displayname
 			login = userData.login
 		}
-
 		document.getElementById("image").src = img;
 		document.getElementById("displayName").innerText = displayname;
 		document.getElementById("loginName").innerText = login;
@@ -197,28 +180,22 @@
 	}
 
 	async function goToMenu(asGuest) {
-		document.getElementById("login").style.display = "none";
-		document.getElementById("menu").style.display = "none";
-		document.getElementById("loading").style.display = "block";
+		window.location.hash = 'loading'
 		try {
 			if(intraCode)
 				await getUserData();
 			else
 				await getRandomUserData();
 			if (!userData.access_token) {
-				document.getElementById("loading").style.display = "none";
-				document.getElementById("login_otp").style.display = "block";
+				window.location.hash = 'login_otp'
 			}
 			else {
 				mountMenu();
-				document.getElementById("loading").style.display = "none";
-				document.getElementById("menu").style.display = "block";
+				window.location.hash = 'menu'
 			}
-			//history.pushState({page: 'menu'}, 'menu', '/menu/');
 		} catch (error) {
 			console.error('Error getting user data:', error);
-			document.getElementById("login").style.display = "block";
-			document.getElementById("loading").style.display = "none";
+			window.location.hash = 'login'
 		}
 	}
 
@@ -250,8 +227,7 @@
 						if (data.access_token) {
 							userData.access_token = data.access_token;
 							mountMenu();
-							document.getElementById("login_otp").style.display = "none";
-							document.getElementById("menu").style.display = "block";
+							window.location.hash = 'menu'
 						}
 						resolve(data.access_token)
 					})
@@ -296,18 +272,37 @@
 		qrcodeImage.style.display = "block";
 	}
 
+	function removeQueryParam(key) {
+    	// Get the current URL
+		var url = new URL(window.location.href);
+		// Get the URLSearchParams object from the URL
+		var params = new URLSearchParams(url.search);
+		// Remove the specified query parameter
+		params.delete(key);
+		// Update the URL with the modified query parameters
+		url.search = params.toString();
+		// Replace the current entry in the browser's history with the updated URL
+		window.history.replaceState({}, document.title, url.href);
+	}
+
+	async function runGame() {
+		window.location.hash = 'game'
+		if (!gameSocket) {
+			await startGame(userData);
+		}
+		window.location.hash = 'menu'
+	}
+
 	function setupSinglePageApplication() {
 		getIntraCode();
-
-		//history.pushState({page: 'login'}, 'login', '/login/');
+		window.location.hash = 'login'
+		removeQueryParam('code')
+		if(intraCode)
+			goToMenu();
 
 		findMatch = document.getElementById('find-match');
 		findMatch.addEventListener('click', () => {
-			document.getElementById("menu").style.display = "none";
-			document.getElementById("game").style.display = "block";
-			if (!gameSocket) {
-				startGame(userData);
-			}
+			runGame();
 		});
 
 		button2fa = document.getElementById('2fa-button');
@@ -382,18 +377,5 @@
 	 		})
 	}
 
-	//window.addEventListener('popstate', (event) => {
-	//	if (event.state === null) {
-	//		return;
-	//	}
-	//	if (event.state.page === 'login') {
-	//		document.getElementById("login").style.display = "block";
-	//		document.getElementById("menu").style.display = "none";
-	//	}
-	//	if (event.state.page === 'menu') {
-	//		document.getElementById("login").style.display = "none";
-	//		document.getElementById("menu").style.display = "block";
-	//	}
-	//});
 	document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 </script>

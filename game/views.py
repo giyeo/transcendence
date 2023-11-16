@@ -22,7 +22,8 @@ INTRA_API_URL = "https://api.intra.42.fr"
 INTRA_API_URL_TOKEN = INTRA_API_URL + "/oauth/token"
 REDIRECT_URI = "http://127.0.0.1:8000/game"
 INTRA_API_ID = "u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d"
-INTRA_API_SECRET = os.getenv("intra_secret")
+INTRA_API_SECRET = "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"
+# INTRA_API_SECRET = os.getenv("intra_secret")
 
 def getToken(code):
     data = {

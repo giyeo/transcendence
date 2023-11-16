@@ -95,3 +95,11 @@ button {
     border-radius: 4px;
     cursor: pointer;
 }
+
+section {
+	display: none;
+}
+
+section:target {
+	display: block;
+}
