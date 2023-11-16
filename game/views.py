@@ -20,6 +20,7 @@ def game(request):
 
 INTRA_API_URL = "https://api.intra.42.fr"
 INTRA_API_URL_TOKEN = INTRA_API_URL + "/oauth/token"
+INTRA_API_URL_ME = INTRA_API_URL + "/v2/me"
 REDIRECT_URI = "http://127.0.0.1:8000/game"
 INTRA_API_ID = "u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d"
 INTRA_API_SECRET = "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"
@@ -34,48 +35,59 @@ def getToken(code):
         "redirect_uri": REDIRECT_URI,
     }
     try:
-        response = requests.post(INTRA_API_URL_TOKEN, data=data)
+        r = requests.post(INTRA_API_URL_TOKEN, data=data)
+        r.raise_for_status()
     except requests.exceptions.RequestException as e:
-        return JsonResponse({}, status=500)
-    if response.status_code == 200:
-        token_data = response.json()
-        return token_data.get("access_token")
-    else:
-        print("Error:", response.status_code, response.text)
+        raise e
+    return r.json()
+
+
+def getUserData(intra_access_token):
+    headers = {"Authorization": "Bearer " + intra_access_token}
+    url = INTRA_API_URL + "/v2/me"
+    try:
+        r = requests.get(url, headers=headers)
+        r.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise e
+    return r.json()
+
+
+def getUserModels(data):
+    try:
+        user = get_user_model().objects.get(username=data.get('login'))
+        user_local = CustomUser.objects.get(login=data.get('login'))
+    except (get_user_model().DoesNotExist, CustomUser.DoesNotExist):
+        user = get_user_model().objects.create(username=data.get('login'))
+        user_local = CustomUser.objects.create(login=data.get('login'))
+        user.save()
+        user_local.save()
+    return user, user_local
 
 
 @api_view(['GET'])
 def userData(request):
     code = request.GET.get('code')
-    if code is None:
-        return
-    token = getToken(code)
-    data = None
-    url = INTRA_API_URL + "/v2/me"
-    headers = {
-        "Authorization": "Bearer " + token
-    }
-    try:
-        r = requests.get(url, headers=headers)
-        r.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        return JsonResponse({}, status=500)
-    if r.status_code == 200:
-        data = r.json()
-        try:
-            user = get_user_model().objects.get(username=data.get('login'))
-            user_local = CustomUser.objects.get(login=data.get('login'))
-        except (get_user_model().DoesNotExist, CustomUser.DoesNotExist):
-            user = get_user_model().objects.create(username=data.get('login'))
-            user_local = CustomUser.objects.create(login=data.get('login'))
-            user.save()
-            user_local.save()
+    intra_access_token = request.GET.get('intra_access_token')
+    if not intra_access_token:
+        if code is None:
+            return JsonResponse({"detail": "No code provided"}, status=400)
+        tokenData = getToken(code)
+        intra_access_token = tokenData["access_token"]
+        data = getUserData(intra_access_token)
+        user, user_local = getUserModels(data)
         if not user_local.twofa_enabled:
             data["access_token"] = str(AccessToken.for_user(user))
         data["user_id"] = str(user.id)
+        data["intra_access_token"] = str(intra_access_token)
+        data["intra_access_token_expires_at"] = str(tokenData["created_at"] + tokenData["expires_in"])
     else:
-        print("Error:", r.status_code, r.text)
-    return JsonResponse(data)
+        data = getUserData(intra_access_token)
+        user, user_local = getUserModels(data)
+        if not user_local.twofa_enabled:
+            data["access_token"] = str(AccessToken.for_user(user))
+        data["user_id"] = str(user.id)
+    return JsonResponse(data, status=200)
 
 
 @api_view(['GET'])
