@@ -1,6 +1,10 @@
-async function getUserData(intraCode, intraAccessToken) {
+import {userData} from './app.js'
+
+var API_URL = "http://127.0.0.1:8000"
+
+export async function getUserData(intraCode, intraAccessToken) {
 	try {
-		const data = await request("GET", API_URL + "/game/data" + "?code=" + intraCode + "&intra_access_token=" + intraAccessToken, {});
+		var data = await request("GET", API_URL + "/game/data" + "?code=" + intraCode + "&intra_access_token=" + intraAccessToken, {});
 		console.log(data);
 		if (data.intra_access_token) {
 			localStorage.setItem("intra_access_token", data.intra_access_token);
@@ -10,15 +14,15 @@ async function getUserData(intraCode, intraAccessToken) {
 			localStorage.setItem("access_token", data.access_token);
 			localStorage.setItem("access_token_expires_at", data.access_token_expires_at);
 		}
-		userData = data;
+		return (data);
 	} catch (error) {
 		console.error('Error:', error);
 	}
 };
 
-async function getRandomUserData() {
+export async function getRandomUserData() {
 	try {
-		const data = await request("GET", "https://randomuser.me/api/", {});
+		var data = await request("GET", "https://randomuser.me/api/", {});
 		console.log(data);
 		randomUserData = data.results[0]
 	} catch (error) {
@@ -26,11 +30,11 @@ async function getRandomUserData() {
 	}
 }
 
-async function getQRCode(accessToken) {
+export async function getQRCode(accessToken) {
 	try {
-		const data = await request("GET", API_URL + '/game/qrcode', {'Authorization': 'Bearer ' + accessToken}, "blob");
+		var data = await request("GET", API_URL + '/game/qrcode', {'Authorization': 'Bearer ' + accessToken}, "blob");
 		console.log(data);
-		qrcodeImage = document.getElementById('2fa-button-qrcode');
+		let qrcodeImage = document.getElementById('2fa-button-qrcode');
 		qrcodeImage.src = URL.createObjectURL(data);
 		qrcodeImage.style.display = "block";
 	} catch (error) {
@@ -38,7 +42,7 @@ async function getQRCode(accessToken) {
 	}
 }
 
-async function verifyOTP(otp, accessToken) {
+export async function verifyOTP(otp, accessToken) {
 	try {
 		await request("GET", API_URL + '/game/verifyOTP?&otp=' + otp, {'Authorization': 'Bearer ' + accessToken});
 		return 200;
@@ -48,22 +52,20 @@ async function verifyOTP(otp, accessToken) {
 	}
 }
 
-async function sendLanguage(accessToken, selectedLanguage) {
+export async function sendLanguage(accessToken, selectedLanguage) {
 	try {
-		const data = await request("PATCH", API_URL + '/game/updateLanguage' + '?lang=' + selectedLanguage, {'Authorization': 'Bearer ' + accessToken});
+		var data = await request("PATCH", API_URL + '/game/updateLanguage' + '?lang=' + selectedLanguage, {'Authorization': 'Bearer ' + accessToken});
 	} catch (error) {
 		console.error('Error:', error);
 	}
 }
 
-async function verifyLoginOTP(otp) {
+export async function verifyLoginOTP(otp) {
 	try {
-		const data = await request("GET", API_URL + '/game/verifyLoginOTP?&otp=' + otp + '&userId=' + userData.user_id, {});
+		var data = await request("GET", API_URL + '/game/verifyLoginOTP?&otp=' + otp + '&userId=' + userData.user_id, {});
 		if (data.access_token) {
 			localStorage.setItem("access_token", data.access_token)
 			localStorage.setItem("access_token_expires_at", data.access_token_expires_at)
-			mountMenu();
-			window.location.hash = 'menu'
 		}
 	} catch (error) {
 		console.error('Error:', error);

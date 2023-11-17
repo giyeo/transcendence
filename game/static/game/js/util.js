@@ -1,4 +1,4 @@
-function removeQueryParam(key) {
+export function removeQueryParam(key) {
 	// Get the current URL
 	var url = new URL(window.location.href);
 	// Get the URLSearchParams object from the URL
@@ -11,7 +11,7 @@ function removeQueryParam(key) {
 	window.history.replaceState({}, document.title, url.href);
 }
 
-function getIntraCode() {
+export function getIntraCode() {
 	let urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('code')) {
 		return urlParams.get('code');
@@ -19,7 +19,7 @@ function getIntraCode() {
 	return "";
 }
 
-function getIntraAccessToken() {
+export function getIntraAccessToken() {
 	let intraAccessToken = localStorage.getItem("intra_access_token")
 	if (intraAccessToken) {
 		return intraAccessToken;
@@ -38,7 +38,7 @@ function getIntraAccessToken() {
 	}
 }
 
-function getAccessToken() {
+export function getAccessToken() {
 	let accessToken = localStorage.getItem("access_token")
 	if (accessToken) {
 		return accessToken;

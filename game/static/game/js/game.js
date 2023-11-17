@@ -17,7 +17,7 @@ let paddleAy = 20 + 300 - 50;
 let paddleBy = 20 + 300 - 50;
 let paddleSizeA = 100;
 let paddleSizeB = 100;
-
+var gameSocket;
 //Apenas seguram valores e setam inicialmente
 let scored = false;
 let scoreA = 0;
@@ -85,7 +85,7 @@ function onOpenWebSocket(e) {
 	console.log('WebSocket connected');
 }
 
-received = 0;
+var received = 0;
 setInterval(function() {
 	console.log("received: ", received, "/s");
 	received = 0;
@@ -192,7 +192,7 @@ async function smoothMoveBall() {
 	// await sleep(12);
 	const diffX = ball.x - oldBall.x;
 	const diffY = ball.y - oldBall.y;
-	steps = 2; // 2, 3, 4, 6, 12
+	var steps = 2; // 2, 3, 4, 6, 12
 	for (let i = 1; i <= steps; i++) {
 	  const t = i / steps;
 	  const currentX = oldBall.x + diffX * t;
@@ -231,8 +231,6 @@ function fabs(x) {
 	return x;
 }
 
-let gameSocket;
-
 function startWebSockets() {
 	let url = `ws://${window.location.host}/ws/socket-server/`
 	gameSocket = new WebSocket(url);
@@ -247,7 +245,9 @@ function startEventListeners() {
 	// document.addEventListener('resize', startGame);
 }
 
-async function enterQueue() {
+var API_URL = "http://127.0.0.1:8000"
+
+async function enterQueue(userData) {
 	loadingScreen.style.display = 'block';
 	return new Promise((resolve, reject) => {
 		fetch(API_URL + `/game/enterQueue?matchType=${"1v1"}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + userData.access_token}})
@@ -262,7 +262,7 @@ async function enterQueue() {
 	})
 }
 
-async function startGame(userData) {
+export async function startGame(userData) {
 	await enterQueue(userData);
 	startWebSockets();
 	startEventListeners();
@@ -323,7 +323,7 @@ function handleKeyDown(event) {
 function setupGame() {
 	leftShift = window.innerWidth / 2 - 400;
 	setBallmiddle();
-	let elementPositions = [
+	var elementPositions = [
 		{
 			top: paddleAy,
 			left: leftShift + 35,
@@ -411,7 +411,7 @@ function movePaddleClient() {
 
 async function drawGame(ballX, ballY) {
 	leftShift = window.innerWidth / 2 - 400;
-	elementPositions = [
+	var elementPositions = [
 		{
 			top: ballY,
 			left: ballX,
@@ -472,3 +472,6 @@ class updateElement {
 		document.getElementById(element).style.height = `${height}px`;
 	}
 }
+
+export default startGame;
+export {gameSocket}

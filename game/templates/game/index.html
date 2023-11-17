@@ -24,11 +24,11 @@
 	<meta name="twitter:description" content="play the old pong game with your friends online">
 	<!-- <meta name="twitter:image" content="URL to an image for Twitter Cards"> -->
 	<meta name="authors" content="The Boys">
-	<script src="{% static 'game/js/rest.js' %}" defer></script>
-	<script src="{% static 'game/js/game.js' %}" defer></script>
-	<script src="{% static 'game/js/language.js' %}" defer></script>
-	<script src="{% static 'game/js/util.js' %}" defer></script>
-	<script src="{% static 'game/js/app.js' %}" defer></script>
+	<script type="module" src="{% static 'game/js/rest.js' %}" defer></script>
+	<script type="module" src="{% static 'game/js/game.js' %}" defer></script>
+	<script type="module" src="{% static 'game/js/language.js' %}" defer></script>
+	<script type="module" src="{% static 'game/js/util.js' %}" defer></script>
+	<script type="module" src="{% static 'game/js/app.js' %}" defer></script>
 </head>
 <body>
 	<section id="login">	{% include './login.html' %}	</section>
