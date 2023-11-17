@@ -232,20 +232,20 @@ function fabs(x) {
 }
 
 function startWebSockets() {
-	let url = `ws://${window.location.host}/ws/socket-server/`
+	let url = `ws://${window.location.host}/ws/socket-server/`;
 	gameSocket = new WebSocket(url);
 }
 
 function startEventListeners() {
 	gameSocket.addEventListener('open', onOpenWebSocket);
 	gameSocket.addEventListener('message', onMessageWebSocket);
-	gameSocket.addEventListener('close', onCloseWebSocket);fetch
+	gameSocket.addEventListener('close', onCloseWebSocket);
 	document.addEventListener('keydown', handleKeyDown);
 	document.addEventListener('keyup', handleKeyUp);
 	// document.addEventListener('resize', startGame);
 }
 
-var API_URL = "http://127.0.0.1:8000"
+const API_URL = "http://127.0.0.1:8000"
 
 async function enterQueue(userData) {
 	loadingScreen.style.display = 'block';

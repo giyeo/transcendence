@@ -6,66 +6,100 @@ import time
 import threading
 from .models import Queue 
 count = 0
+t_count = 0 # tournament count
 match_name = None
 values = {}
 queue = []
 matches = {}
 matchPlayers = {}
+simpleMatchName = None
+simpleMatchPlayers = [] # max 2 players
+simpleMatchPlayersLogins = [] # max 2 players logins
 
 tournaments = {}
 
 class GameConsumer(WebsocketConsumer):
     def connect(self):
-        global match_name, count
+        global simpleMatchName, count
         #chamar tipo de matchjmaking especifico
         userId = Queue.objects.last().user_id
         login = Queue.objects.last().login
         matchType = Queue.objects.last().match_type
         gamemode = Queue.objects.last().gamemode
+        self.accept()
         if matchType == '1v1':
             player = self.simpleMatch(login)
+        elif matchType == 'tournament':
+            player = self.tournamentfMatch(login)
         # elif matchType == 'tournament':
         #     player = self.tournamentMatch()
         else:
             self.close()
-        print("CONNECTED, CHANNEL:", self.channel_name, match_name, player, count)
-        self.accept()
-        self.send(text_data=json.dumps({"type":"handshake", "player": player, "match": match_name}))
+        print("CONNECTED, CHANNEL:", self.channel_name, simpleMatchName, player, count)
+
+    def tournamentMatch(self, login):
+        global t_count, match_name
+        if t_count % 4 == 0:
+            match_name = "tournament" + str(t_count // 2)
+            player = 'a'
+
+        #t_count = t_count + 1
+
+
+    def doMatch(self):
+        global count, simpleMatchPlayers, values, simpleMatchPlayersLogins
+
+        match_name = "match" + str(count // 2)
+        async_to_sync(self.channel_layer.group_add)(
+            match_name, simpleMatchPlayers[0]
+        )
+        async_to_sync(self.channel_layer.group_add)(
+            match_name, simpleMatchPlayers[1]
+        )
+
+        values[match_name] = {"aY": 270, "bY": 270}
+        print("values: ", values)
+        matches[match_name] = []
+        matchPlayers[match_name] = []
+        print("simpleMatchPlayers: ", simpleMatchPlayers)
+        for player in simpleMatchPlayers:
+            matches[match_name].append(player)
+        print("matches: ", matches)
+        for login in simpleMatchPlayersLogins:
+            matchPlayers[match_name].append(login)
+        print("matchPlayers: ", matchPlayers)
+        return match_name
 
     def simpleMatch(self, login):
-        global count, match_name
-        new_match = False
-        if count % 2 == 0:
-            match_name = "match" + str(count // 2)
-            player = 'a'
-            values[match_name] = {"aY": 270, "bY": 270}
-            queue.append(self.channel_name)
-            matches[match_name] = []
-            matches[match_name].append(self.channel_name)
-            matchPlayers[match_name] = []
-            matchPlayers[match_name].append(login)
-        else:
-            player = 'b'
-            new_match = True
-            queue.clear()
-            matches[match_name].append(self.channel_name)
-            matchPlayers[match_name].append(login)
-        count += 1
-        async_to_sync(self.channel_layer.group_add)(
-            match_name, self.channel_name
-        )
-        if new_match:
-            self.newMatch(match_name)
-        return player
+        global count, simpleMatchPlayers, simpleMatchPlayersLogins
 
-    def newMatch(self, match_name):
-        thread = threading.Thread(target=self.gameLoop, args=(match_name,))
+        simpleMatchPlayers.append(self.channel_name)
+        simpleMatchPlayersLogins.append(login)
+        if count % 2 == 1:
+            self.newMatch()
+        if count % 2 == 0:
+            count += 1
+            return 'a'
+        else:
+            count += 1
+            return 'b'
+
+    def newMatch(self):
+        global simpleMatchName
+
+        simpleMatchName = self.doMatch()
+
+        thread = threading.Thread(target=self.gameLoop, args=(simpleMatchName,))
         thread.daemon = True  # This allows the thread to exit when the main program exits
         thread.start()
-        print("STARTED GAME THREAD", match_name, matches[match_name])
+        for player in simpleMatchPlayers:
+            async_to_sync(self.channel_layer.send)(player, {"type":"handshake", "player": player, "match": simpleMatchName})
+        simpleMatchPlayers.clear()
+        print("STARTED GAME THREAD", simpleMatchName, matches[simpleMatchName])
 
     def receive(self, text_data):
         data = json.loads(text_data)
+        #print("receive: ", data)
         if "aY" in data:
             values[data["match"]]["aY"] = data["aY"]
         elif "bY" in data:
