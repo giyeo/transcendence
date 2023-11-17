@@ -24,7 +24,10 @@
 	<meta name="twitter:description" content="play the old pong game with your friends online">
 	<!-- <meta name="twitter:image" content="URL to an image for Twitter Cards"> -->
 	<meta name="authors" content="The Boys">
-	<script src="{% static 'game/app.js' %}" defer></script>
+	<script src="{% static 'game/js/rest.js' %}" defer></script>
+	<script src="{% static 'game/js/game.js' %}" defer></script>
+	<script src="{% static 'game/js/language.js' %}" defer></script>
+	<script src="{% static 'game/js/util.js' %}" defer></script>
 </head>
 <body>
 	
@@ -41,128 +44,7 @@
 	var userData;
 	var randomUserData;
 
-	const translations = {
-		"login-guest": {
-			"en": "Play as Guest",
-			"pt": "Jogar como convidado",
-			"fr": "Jouer en tant qu'invité",
-		},
-		"login-intra": {
-			"en": "Play as 42",
-			"pt": "Jogar como 42",
-			"fr": "Jouer en tant que 42",
-		},
-		"find-match": {
-			"en": "Find Match",
-			"pt": "Encontrar partida",
-			"fr": "Trouver une partie",
-		},
-		"2fa-button": {
-			"en": "Toggle 2FA",
-			"pt": "Alternar 2FA",
-			"fr": "Basculer la 2FA",
-		},
-		"sendOTP": {
-			"en": "Enter",
-			"pt": "Entrar",
-			"fr": "Entrer",
-		},
-		"send-login-OTP": {
-			"en": "Enter",
-			"pt": "Entrar",
-			"fr": "Entrer",
-		},
-		"wait-other-players": {
-			"en": "Waiting for other players...",
-			"pt": "Aguardando outros jogadores...",
-			"fr": "En attente d'autres joueurs...",
-		},
-		"game-over": {
-			"en": "Game Over",
-			"pt": "Fim de jogo",
-			"fr": "Fin du jeu",
-		},
-		"loading": {
-			"en": "Loading...",
-			"pt": "Esperando...",
-			"fr": "Chargement...",
-		},
-		"logout": {
-			"en": "Logout",
-			"pt": "Sair",
-			"fr": "Se déconnecter",
-		},
-	};
-	var selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
-	document.getElementById("languageSelectMenu").value = selectedLanguage;
-	document.getElementById("languageSelectLogin").value = selectedLanguage;
-
-	function getIntraCode() {
-		let urlParams = new URLSearchParams(window.location.search);
-		if (urlParams.has('code')) {
-			return urlParams.get('code');
-		}
-		return "";
-	}
-
-	function getIntraAccessToken() {
-		let intraAccessToken = localStorage.getItem("intra_access_token")
-		if (intraAccessToken) {
-			return intraAccessToken;
-			// let expiresAt = localStorage.getItem("intra_access_token_expires_at")
-			// console.l
-			// if (expiresAt > Date.now()) {
-			// 	console.log("intraAccessToken still valid")
-			// 	return intraAccessToken;
-			// } else {
-			// 	console.log("intraAccessToken expired")
-			// 	localStorage.removeItem("intra_access_token");
-			// 	localStorage.removeItem("intra_access_token_expires_at");
-			// }
-		} else {
-			return "";
-		}
-	}
-
-	function getAccessToken() {
-		let accessToken = localStorage.getItem("access_token")
-		if (accessToken) {
-			return accessToken;
-		} else {
-			return "";
-		}
-	}
-
 	API_URL = "http://127.0.0.1:8000"
-
-	function getUserData(intraCode, intraAccessToken) {
-		return new Promise((resolve, reject) => {
-			fetch(API_URL + "/game/data" + "?code=" + intraCode + "&intra_access_token=" + intraAccessToken)
-				.then(response => {
-					if (!response.ok) {
-						throw new Error('Network response was not ok');
-					}
-					return response.json();
-				})
-				.then(data => {
-					if (data.intra_access_token) {
-						localStorage.setItem("intra_access_token", data.intra_access_token)
-						localStorage.setItem("intra_access_token_expires_at", data.intra_access_token_expires_at)
-					}
-					if (data.access_token) {
-						localStorage.setItem("access_token". data.access_token)
-						localStorage.setItem("access_token_expires_at". data.access_token_expires_at)
-					}
-					userData = data
-					console.log('Data from Django:', data);
-					resolve(data)
-				})
-				.catch(error => {
-					console.error('There was a problem with the fetch operation:', error);
-					resolve(error)
-			});
-		});
-	};
 
 	function mountMenu() {
 		let img = "";
@@ -183,36 +65,14 @@
 		document.getElementById("loginName").innerText = login;
 	}
 
-	function getRandomUserData() {
-		return new Promise((resolve, reject) => {
-			fetch('https://randomuser.me/api/')
-			.then(response => {
-				if (!response.ok) {
-				throw new Error('Network response was not ok');
-				}
-				return response.json();
-			})
-			.then(data => {
-				randomUserData = data.results[0]
-				//console.log(data.results[0]);
-				resolve(data)
-			})
-			.catch(error => {
-				console.error('There was a problem with the fetch operation:', error);
-				resolve(error)
-			});
-		})
-	}
-
-	async function goToMenu(intraCode, intraAccessToken, accessToken) {
+	async function goToMenu(intraCode, intraAccessToken) {
 		window.location.hash = 'loading'
 		try {
 			if(intraCode || intraAccessToken)
 				await getUserData(intraCode, intraAccessToken);
 			else
 				await getRandomUserData();
-			if (!accessToken) {
-				console.log("There's no access_token")
+			if (!userData["access_token"]) {
 				window.location.hash = 'login_otp'
 			}
 			else {
@@ -223,45 +83,6 @@
 			console.error('Error getting user data:', error);
 			window.location.hash = 'login'
 		}
-	}
-
-	async function verifyOTP(otp, accessToken) {
-		return new Promise((resolve, reject) => {
-				fetch(API_URL + '/game/verifyOTP?&otp=' + otp, {headers: {'Authorization': 'Bearer ' + accessToken}})
-					.then(response => {
-						console.log("QR code received")
-						return response.status;
-					})
-					.then(data => {
-						resolve(data)
-					})
-					.catch(error => {
-						console.error('There was a problem with the fetch operation:', error);
-						resolve(error);
-					});
-			})
-	}
-
-	async function verifyLoginOTP(otp) {
-		return new Promise((resolve, reject) => {
-				fetch(API_URL + '/game/verifyLoginOTP?&otp=' + otp + '&userId=' + userData.user_id)
-					.then(response => {
-						return response.json();
-					})
-					.then(data => {
-						if (data.access_token) {
-							localStorage.setItem("access_token", data.access_token)
-							localStorage.setItem("access_token_expires_at", data.access_token_expires_at)
-							mountMenu();
-							window.location.hash = 'menu'
-						}
-						resolve(data.access_token)
-					})
-					.catch(error => {
-						console.error('There was a problem with the fetch operation:', error);
-						resolve(error);
-					});
-			})
 	}
 
 	async function sendOTP(accessToken) {
@@ -275,40 +96,6 @@
 			qrcodeImage.style.display = "none"
 			inputActivationOTP.style.display = "none"
 		}
-	}
-
-	async function getQRCode(accessToken) {
-		qrcodeImage = document.getElementById('2fa-button-qrcode');
-		qrcode = await new Promise((resolve, reject) => {
-				fetch(API_URL + '/game/qrcode', {headers: {'Authorization': 'Bearer ' + accessToken}})
-					.then(response => {
-						console.log("QR code received")
-						return response.blob();
-					})
-					.then(blob => {
-						resolve(blob)
-					})
-					.catch(error => {
-						console.error('There was a problem with the fetch operation:', error);
-						resolve(error);
-					});
-			})
-
-		qrcodeImage.src = URL.createObjectURL(qrcode);
-		qrcodeImage.style.display = "block";
-	}
-
-	function removeQueryParam(key) {
-    	// Get the current URL
-		var url = new URL(window.location.href);
-		// Get the URLSearchParams object from the URL
-		var params = new URLSearchParams(url.search);
-		// Remove the specified query parameter
-		params.delete(key);
-		// Update the URL with the modified query parameters
-		url.search = params.toString();
-		// Replace the current entry in the browser's history with the updated URL
-		window.history.replaceState({}, document.title, url.href);
 	}
 
 	async function runGame() {
@@ -325,13 +112,16 @@
 		let accessToken = getAccessToken();
 		console.log("intraCode: " + intraCode)
 		console.log("intraAccessToken: " + intraAccessToken)
+		var selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
+		document.getElementById("languageSelectMenu").value = selectedLanguage;
+		document.getElementById("languageSelectLogin").value = selectedLanguage;
 
 		window.location.hash = 'login'
 		removeQueryParam('code')
 
 		if (intraCode || intraAccessToken) {
 			console.log("intraCode or intraAccessToken defined, going to menu")
-			goToMenu(intraCode, intraAccessToken, accessToken);
+			goToMenu(intraCode, intraAccessToken);
 		}
 
 		findMatch = document.getElementById('find-match');
@@ -341,7 +131,7 @@
 
 		button2fa = document.getElementById('2fa-button');
 		button2fa.addEventListener('click', () => {
-			getQRCode(accessToken)
+			getQRCode(getAccessToken())
 		});
 
 		sendOTPHandler = document.getElementById('sendOTP');
@@ -381,7 +171,7 @@
 			selectedLanguage = languageSelectLogin.value;
 			if (["en", "pt", "fr"].includes(selectedLanguage)) {
 				localStorage.setItem("selectedLanguage", selectedLanguage);
-				updateLanguage();
+				updateLanguage(selectedLanguage);
 			}
 		})
 
@@ -390,12 +180,12 @@
 			selectedLanguage = languageSelectMenu.value;
 			if (["en", "pt", "fr"].includes(selectedLanguage)) {
 				localStorage.setItem("selectedLanguage", selectedLanguage);
-				updateLanguage();
-				sendLanguage(accessToken);
+				updateLanguage(selectedLanguage);
+				sendLanguage(accessToken, selectedLanguage);
 			}
 		})
 
-		updateLanguage();
+		updateLanguage(selectedLanguage);
 
 		logoutButton = document.getElementById('logout');
 		logoutButton.addEventListener('click', () => {
@@ -405,29 +195,6 @@
 			localStorage.removeItem("access_token_expires_at");
 			window.location.reload();
 		});
-	}
-
-	function updateLanguage() {
-		var elementsToUpdate = document.querySelectorAll('.translation');
-		elementsToUpdate.forEach(function(element) {
-			element.innerHTML = translations[element.id][selectedLanguage];
-		});
-	}
-
-	async function sendLanguage(access_token) {
-		return await new Promise((resolve, reject) => {
-				fetch(API_URL + '/game/updateLanguage' + '?lang=' + selectedLanguage, {method: 'PATCH', headers: {'Authorization': 'Bearer ' + access_token}})
-					.then(response => {
-						return response.json();
-					})
-	 				.then(data => {
-	 					resolve(data)
-	 				})
-	 				.catch(error => {
-	 					console.error('There was a problem with the fetch operation:', error);
-	 					resolve(error);
-	 				});
-	 		})
 	}
 
 	document.addEventListener('DOMContentLoaded', setupSinglePageApplication);

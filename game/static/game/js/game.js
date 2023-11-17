@@ -241,7 +241,7 @@ function startWebSockets() {
 function startEventListeners() {
 	gameSocket.addEventListener('open', onOpenWebSocket);
 	gameSocket.addEventListener('message', onMessageWebSocket);
-	gameSocket.addEventListener('close', onCloseWebSocket);
+	gameSocket.addEventListener('close', onCloseWebSocket);fetch
 	document.addEventListener('keydown', handleKeyDown);
 	document.addEventListener('keyup', handleKeyUp);
 	// document.addEventListener('resize', startGame);
