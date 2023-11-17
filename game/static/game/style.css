@@ -1,3 +1,16 @@
+* {
+	padding: 0;
+	margin: 0;
+}
+/* @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:ital@1&display=swap'); */
+
+@font-face {
+	font-family: 'Nico Moji';
+	src: url('NicoMoji-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
 body {
     display: flex;
     justify-content: center;
@@ -5,7 +18,12 @@ body {
     height: 100vh;
     margin: 0;
 	background-color: grey;
-	font-family: 'Press Start 2P', cursive;
+	font-family: 'Nico Moji';
+}
+
+#title {
+	color: white;
+	font-family: 'Nico Moji';
 }
 
 .paddle {
@@ -40,19 +58,16 @@ body {
   }
 
 .score {
-    font-family: 'Press Start 2P', cursive;
 	font-size: 100px;
 	position: absolute;
 }
 
 .info {
-    font-family: 'Press Start 2P', cursive;
 	font-size: 20px;
 	position: absolute;
 }
 
 .countDown {
-	font-family: 'Press Start 2P', cursive;
 	font-size: 80px;
 	color: white;
 	position: absolute;
@@ -84,7 +99,7 @@ body {
 }
 
 button {
-    font-family: 'Press Start 2P', cursive;
+	font-family: 'Nico Moji';
 }
 
 #find-match #login-guest #login-intra {
@@ -102,4 +117,31 @@ section {
 
 section:target {
 	display: block;
+}
+
+@media only screen and (max-width: 480px) {
+
+
+	body {
+		background-color: black;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100vh; /* Ensure the body takes up the full viewport height */
+		margin: 0;
+	}
+
+	#title {
+		font-size: 10vw;
+		margin-bottom: 6.6vh;
+	}
+
+	button {
+		width: 74vw;
+		margin-bottom: 6.6vh;
+		height: 8vh;
+	}
+	.container {
+		text-align: center;
+	}
 }
