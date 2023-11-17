@@ -1,7 +1,28 @@
-<p style="color: white;">You have 2FA enabled. Please enter your 2FA code to login.</p>
-<div class="container">
-	<div id="input-login-OTP">
-		<input id="2fa-login-input" type="text" placeholder="2FA code"></input>
-		<button  class="translation" id="send-login-OTP">Enter</input>
-	</div>
+<header>
+	<h2 class="otp-header">
+		Digit your 6 number <br> OTP
+	</h2>
+</header>
+<div id="input-login-OTP">
+		<input class="twofa-login-input" type="digit" maxlength="1" id="digit1" oninput="moveToNext(this)"></input>
+		<input class="twofa-login-input" type="digit" maxlength="1" id="digit2" oninput="moveToNext(this)"></input>
+		<input class="twofa-login-input" type="digit" maxlength="1" id="digit3" oninput="moveToNext(this)"></input>
+		<input class="twofa-login-input" type="digit" maxlength="1" id="digit4" oninput="moveToNext(this)"></input>
+		<input class="twofa-login-input" type="digit" maxlength="1" id="digit5" oninput="moveToNext(this)"></input>
+		<input class="twofa-login-input" type="digit" maxlength="1" id="digit6"></input>
+		<button class="translation" id="send-login-OTP">Enter</input>
 </div>
+
+<script>
+	function moveToNext(currentInput) {
+            var maxLength = parseInt(currentInput.getAttribute('maxlength'), 10);
+            var nextInputId = parseInt(currentInput.id.replace('digit', ''), 10) + 1;
+
+            if (currentInput.value.length === maxLength) {
+                // Move focus to the next input
+                if (nextInputId <= 6) {
+                    document.getElementById('digit' + nextInputId).focus();
+                }
+            }
+        }
+</script>

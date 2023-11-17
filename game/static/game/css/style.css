@@ -121,27 +121,66 @@ section:target {
 
 @media only screen and (max-width: 480px) {
 
-
 	body {
 		background-color: black;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 		height: 100vh; /* Ensure the body takes up the full viewport height */
 		margin: 0;
 	}
 
-	#title {
-		font-size: 10vw;
-		margin-bottom: 6.6vh;
+	.container {
+		display: inline-grid;
 	}
 
-	button {
-		width: 74vw;
-		margin-bottom: 6.6vh;
-		height: 8vh;
-	}
-	.container {
+	#title {
+		font-size: 14vw;
 		text-align: center;
+	}
+
+	.play-buttons {
+		display: grid;
+		justify-self: center;
+	}
+
+	.buttons {
+		min-width: 200px;
+		min-height: 24px;
+		width: 74vw;
+		margin: 3% 0 3% 0;
+		height: 8vh;
+		font-size:120%;
+	}
+
+	#loading {
+		color: white;
+	}
+
+	.otp-header {
+		display: grid;
+		justify-content: center;
+		text-align: center;
+		color: white;
+		width: 81vw;
+		min-width: 200px;
+	}
+
+	#input-login-OTP {
+		display: grid;
+		justify-content: center;
+		grid-template-columns: repeat(6, 12vw);
+		grid-template-rows: repeat(2, 6.6vh);
+		column-gap: 2vw;
+		margin-top: 2vh;
+	}
+	
+	.twofa-login-input {
+		text-align: center;
+		font-family: 'Nico Moji';
+		font-size: 1.5em;
+	}
+
+	#send-login-OTP {
+		margin-top: 2vh;
+		grid-column: 1 / 7;
+		grid-row: 2 / 3;
 	}
 }

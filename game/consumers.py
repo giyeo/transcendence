@@ -36,7 +36,7 @@ class GameConsumer(WebsocketConsumer):
         global count, match_name
         new_match = False
         if count % 2 == 0:
-            match_name = "match" + str(count // 2)
+            match_name = "match" + str(count // 2) #NOTE: count // 2 pode dar ruim não? em vista que se count tiver valor de 2 ou 3 vai retornar 1 como resultado.
             player = 'a'
             values[match_name] = {"aY": 270, "bY": 270}
             queue.append(self.channel_name)
