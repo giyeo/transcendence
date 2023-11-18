@@ -4,7 +4,10 @@ import json
 from . import match
 import time
 import threading
-from .models import Queue 
+from .models import Queue
+
+import time
+
 count = 0
 t_count = 0 # tournament count
 match_name = None
@@ -20,20 +23,25 @@ tournaments = {}
 
 class GameConsumer(WebsocketConsumer):
     def connect(self):
+        print("-------------------------")
         global simpleMatchName, count
         #chamar tipo de matchjmaking especifico
         userId = Queue.objects.last().user_id
         login = Queue.objects.last().login
         matchType = Queue.objects.last().match_type
         gamemode = Queue.objects.last().gamemode
-        self.accept()
+        print("DEFINING MATCH TYPE")
         if matchType == '1v1':
+            print("CONNECTION ACCEPETED, 1v1 MATCH")
             player = self.simpleMatch(login)
+            print("PLAYER: ", player)
+            self.accept()
         elif matchType == 'tournament':
             player = self.tournamentfMatch(login)
         # elif matchType == 'tournament':
         #     player = self.tournamentMatch()
         else:
+            print("MATCH TYPE NOT FOUND, SO CONNECTION CLOSE")
             self.close()
         print("CONNECTED, CHANNEL:", self.channel_name, simpleMatchName, player, count)
 
@@ -58,48 +66,62 @@ class GameConsumer(WebsocketConsumer):
         )
 
         values[match_name] = {"aY": 270, "bY": 270}
-        print("values: ", values)
+        print("VALUES: ", values)
         matches[match_name] = []
         matchPlayers[match_name] = []
-        print("simpleMatchPlayers: ", simpleMatchPlayers)
+        print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayers)
         for player in simpleMatchPlayers:
             matches[match_name].append(player)
-        print("matches: ", matches)
+        print("MATCHES: ", matches)
         for login in simpleMatchPlayersLogins:
             matchPlayers[match_name].append(login)
-        print("matchPlayers: ", matchPlayers)
+        print("MATCH PLAYERS: ", matchPlayers)
         return match_name
 
     def simpleMatch(self, login):
         global count, simpleMatchPlayers, simpleMatchPlayersLogins
 
         simpleMatchPlayers.append(self.channel_name)
+        print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayers)
         simpleMatchPlayersLogins.append(login)
-        if count % 2 == 1:
-            self.newMatch()
+        print("SIMPLE MATCH PLAYERS LOGINS: ", simpleMatchPlayersLogins)  
         if count % 2 == 0:
             count += 1
+            print("PLAYER A")
             return 'a'
         else:
             count += 1
+            print("PLAYER B")
+            self.newMatch()
             return 'b'
 
     def newMatch(self):
         global simpleMatchName
 
+        print("BEFORE NEW MATCH", simpleMatchPlayers)
         simpleMatchName = self.doMatch()
+        print("AFTER NEW MATCH: ", simpleMatchName)
 
+        print("SEND MESSAGE TO EACH PLAYER")
+        for i, simple_match_player in enumerate(simpleMatchPlayers):
+            if (i == 0):
+                player = 'a'
+            else:
+                player = 'b'
+            print("SEND MESSAGE TO: SIMPLE MATCH PLAYER: ", simple_match_player, "PLAYER:", player)
+            async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchName})
+        print("START GAME THREAD")
+        time.sleep(1)
         thread = threading.Thread(target=self.gameLoop, args=(simpleMatchName,))
         thread.daemon = True  # This allows the thread to exit when the main program exits
         thread.start()
-        for player in simpleMatchPlayers:
-            async_to_sync(self.channel_layer.send)(player, {"type":"handshake", "player": player, "match": simpleMatchName})
+        print("CLEAR SIMPLE MATCH PLAYERS")
         simpleMatchPlayers.clear()
         print("STARTED GAME THREAD", simpleMatchName, matches[simpleMatchName])
 
     def receive(self, text_data):
         data = json.loads(text_data)
-        #print("receive: ", data)
+        #print("RECEIVE: ", data)
         if "aY" in data:
             values[data["match"]]["aY"] = data["aY"]
         elif "bY" in data:
@@ -116,7 +138,7 @@ class GameConsumer(WebsocketConsumer):
             if(self.channel_name in matches[match]):
                 matches[match].remove(self.channel_name)
 
-        print("disconnect", close_code)
+        print("DISCONNECT", close_code)
         pass
 
     def gameLoop(self, match_name):
@@ -171,6 +193,15 @@ class GameConsumer(WebsocketConsumer):
         emits+=1
         calcTime(match_name)
 
+    def handshake(self, event):
+        print("HANDSHAKE")
+        print("EVENT PLAYER: ", event['player'])
+        print("EVENT MATCH: ", event['match'])
+        self.send(text_data=json.dumps({
+            "type":"handshake",
+            "player": event["player"],
+            "match": event["match"]
+        }))
 
 recv = 0
 timeA = int(time.time() * 1000)
