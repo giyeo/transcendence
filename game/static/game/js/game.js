@@ -264,7 +264,7 @@ function startEventListeners() {
 	gameSocket.addEventListener('close', onCloseWebSocket);
 	document.addEventListener('keydown', handleKeyDown);
 	document.addEventListener('keyup', handleKeyUp);
-	// document.addEventListener('resize', startGame);
+	document.addEventListener('resize', (e) => { e.preventDefault(); });
 }
 
 const API_URL = "http://127.0.0.1:8000"
