@@ -15,9 +15,15 @@ values = {}
 queue = []
 matches = {}
 matchPlayers = {}
+
 simpleMatchName = None
 simpleMatchPlayers = [] # max 2 players
 simpleMatchPlayersLogins = [] # max 2 players logins
+tournamentMatchName0 = None
+tournamentMatchName1 = None
+tournamentMatchPlayers = [] # max 4 players
+tournamentMatchPlayersLogins = [] # max 4 players logins
+
 
 tournaments = {}
 
@@ -30,28 +36,75 @@ class GameConsumer(WebsocketConsumer):
         login = Queue.objects.last().login
         matchType = Queue.objects.last().match_type
         gamemode = Queue.objects.last().gamemode
+        print("MATCH TYPE: ", matchType)
+        print("GAMEMODE: ", gamemode)
+        self.accept()
         print("DEFINING MATCH TYPE")
-        if matchType == '1v1':
+        if matchType == 'simpleMatch':
             print("CONNECTION ACCEPETED, 1v1 MATCH")
             player = self.simpleMatch(login)
             print("PLAYER: ", player)
-            self.accept()
-        elif matchType == 'tournament':
-            player = self.tournamentfMatch(login)
-        # elif matchType == 'tournament':
-        #     player = self.tournamentMatch()
+            print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME:", simpleMatchName, "PLAYER:", player, "COUNT:", count)
+        elif matchType == 'tournamentMatch':
+            print("CONNECTION ACCEPETED, TOURNAMENT MATCH")
+            player = self.tournamentMatch(login) 
+            print("PLAYER: ", player)
+            print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME 0:", tournamentMatchName0, "MATCH NAME 1:", tournamentMatchName1, "PLAYER:", player, "T_COUNT:", t_count)
         else:
             print("MATCH TYPE NOT FOUND, SO CONNECTION CLOSE")
             self.close()
-        print("CONNECTED, CHANNEL:", self.channel_name, simpleMatchName, player, count)
+
 
     def tournamentMatch(self, login):
-        global t_count, match_name
-        if t_count % 4 == 0:
-            match_name = "tournament" + str(t_count // 2)
-            player = 'a'
+        """
+            Tournament match will have 4 players
+            Two players will fight in a 1v1 match
+            And another two players will fight in another 1v1 match
+            The winners of each match will fight in a 1v1 match
+            The winner of the last match will be the tournament winner
+        """
+        global t_count, tournaments, tournamentMatchPlayers, tournamentMatchPlayersLogins
 
-        #t_count = t_count + 1
+        tournamentMatchPlayers.append(self.channel_name)
+        print("TOURNAMENT MATCH PLAYERS: ", tournamentMatchPlayers)
+        tournamentMatchPlayersLogins.append(login)
+        print("TOURNAMENT MATCH PLAYERS LOGINS: ", tournamentMatchPlayersLogins)
+
+        if t_count % 4 == 0:
+            t_count += 1
+            print("PLAYER A")
+            return 'a'
+        elif t_count % 4 == 1:
+            t_count += 1
+            print("PLAYER B")
+            return 'b'
+        elif t_count % 4 == 2:
+            t_count += 1
+            print("PLAYER C")
+            return 'a'
+        elif t_count % 4 == 3:
+            t_count += 1
+            print("PLAYER D")
+            self.newTournamentMatch()
+            return 'b'
+
+
+    def simpleMatch(self, login):
+        global count, simpleMatchPlayers, simpleMatchPlayersLogins
+
+        simpleMatchPlayers.append(self.channel_name)
+        print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayers)
+        simpleMatchPlayersLogins.append(login)
+        print("SIMPLE MATCH PLAYERS LOGINS: ", simpleMatchPlayersLogins)  
+        if count % 2 == 0:
+            count += 1
+            print("PLAYER A")
+            return 'a'
+        else:
+            count += 1
+            print("PLAYER B")
+            self.newMatch()
+            return 'b'
 
 
     def doMatch(self):
@@ -78,22 +131,49 @@ class GameConsumer(WebsocketConsumer):
         print("MATCH PLAYERS: ", matchPlayers)
         return match_name
 
-    def simpleMatch(self, login):
-        global count, simpleMatchPlayers, simpleMatchPlayersLogins
 
-        simpleMatchPlayers.append(self.channel_name)
-        print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayers)
-        simpleMatchPlayersLogins.append(login)
-        print("SIMPLE MATCH PLAYERS LOGINS: ", simpleMatchPlayersLogins)  
-        if count % 2 == 0:
-            count += 1
-            print("PLAYER A")
-            return 'a'
-        else:
-            count += 1
-            print("PLAYER B")
-            self.newMatch()
-            return 'b'
+    def doTournamentMatch(self):
+        global t_count, tournamentMatchPlayers, values, tournamentMatchPlayersLogins
+
+        tournament_match_name0 = "tournament" + str(t_count // 4) + "_0"
+        async_to_sync(self.channel_layer.group_add)(
+            tournament_match_name0, tournamentMatchPlayers[0]
+        )
+        async_to_sync(self.channel_layer.group_add)(
+            tournament_match_name0, tournamentMatchPlayers[1]
+        )
+        tournament_match_name1 = "tournament" + str(t_count // 4) + "_1"
+        async_to_sync(self.channel_layer.group_add)(
+            tournament_match_name1, tournamentMatchPlayers[2]
+        )
+        async_to_sync(self.channel_layer.group_add)(
+            tournament_match_name1, tournamentMatchPlayers[3]
+        )
+
+        values[tournament_match_name0] = {"aY": 270, "bY": 270}
+        values[tournament_match_name1] = {"aY": 270, "bY": 270}
+        print("VALUES: ", values)
+        matches[tournament_match_name0] = []
+        matches[tournament_match_name1] = []
+        matchPlayers[tournament_match_name0] = []
+        matchPlayers[tournament_match_name1] = []
+        print("TOURNAMENT MATCH PLAYERS: ", tournamentMatchPlayers)
+        #for player in tournamentMatchPlayers:
+        #    matches[tournament_match_name].append(player)
+        matches[tournament_match_name0].append(tournamentMatchPlayers[0])
+        matches[tournament_match_name0].append(tournamentMatchPlayers[1])
+        matches[tournament_match_name1].append(tournamentMatchPlayers[2])
+        matches[tournament_match_name1].append(tournamentMatchPlayers[3])
+        print("MATCHES: ", matches)
+        #for login in tournamentMatchPlayersLogins:
+        #    matchPlayers[tournament_match_name].append(login)
+        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[0])
+        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[1])
+        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[2])
+        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[3])
+        print("MATCH PLAYERS: ", matchPlayers)
+        return tournament_match_name0, tournament_match_name1
+        
 
     def newMatch(self):
         global simpleMatchName
@@ -117,7 +197,45 @@ class GameConsumer(WebsocketConsumer):
         thread.start()
         print("CLEAR SIMPLE MATCH PLAYERS")
         simpleMatchPlayers.clear()
+        simpleMatchPlayersLogins.clear()
         print("STARTED GAME THREAD", simpleMatchName, matches[simpleMatchName])
+
+
+    def newTournamentMatch(self):
+        global tournamentMatchName0, tournamentMatchName1
+
+        print("BEFORE NEW TOURNAMENT MATCH", tournamentMatchPlayers)
+        tournamentMatchName0, tournamentMatchName1 = self.doTournamentMatch()
+        print("AFTER NEW TOURNAMENT MATCH: ", "0:", tournamentMatchName0, "1:", tournamentMatchName1)
+
+        print("SEND MESSAGE TO EACH PLAYER")
+        for i, tournament_match_player in enumerate(tournamentMatchPlayers):
+            if (i == 0):
+                player = 'a'
+                match_name = tournamentMatchName0
+            elif (i == 1):
+                player = 'b'
+                match_name = tournamentMatchName0
+            elif (i == 2):
+                player = 'a'
+                match_name = tournamentMatchName1
+            else:
+                player = 'b'
+                match_name = tournamentMatchName1
+            print("SEND MESSAGE TO: TOURNAMENT MATCH PLAYER: ", tournament_match_player, "PLAYER:", player, "MATCH:", match_name)
+            async_to_sync(self.channel_layer.send)(tournament_match_player, {"type":"handshake", "player": player, "match": match_name})
+        print("START GAME THREAD")
+        time.sleep(1)
+        thread = threading.Thread(target=self.gameLoop, args=(tournamentMatchName0,))
+        thread.daemon = True
+        thread.start()
+        thread = threading.Thread(target=self.gameLoop, args=(tournamentMatchName1,))
+        thread.daemon = True
+        thread.start()
+        print("CLEAR TOURNAMENT MATCH PLAYERS")
+        tournamentMatchPlayers.clear()
+        tournamentMatchPlayersLogins.clear()
+        print("STARTED GAME THREAD. MATCH NAME 0:", tournamentMatchName0, matches[tournamentMatchName0], "MATCH NAME 1:", tournamentMatchName1, matches[tournamentMatchName1])
 
     def receive(self, text_data):
         data = json.loads(text_data)
@@ -139,7 +257,7 @@ class GameConsumer(WebsocketConsumer):
                 matches[match].remove(self.channel_name)
 
         print("DISCONNECT", close_code)
-        pass
+
 
     def gameLoop(self, match_name):
         async_to_sync(self.channel_layer.group_send)(match_name,

@@ -1,5 +1,6 @@
 var userData;
 var randomUserData;
+var matchType = "tournamentMatch";
 
 import {updateLanguage} from './language.js';
 import {startGame, gameSocket} from './game.js';
@@ -58,10 +59,10 @@ async function sendOTP(accessToken) {
 	}
 }
 
-async function runGame() {
+async function runGame(matchType) {
 	window.location.hash = 'game'
 	if (!gameSocket) {
-		await startGame(userData);
+		await startGame(userData, matchType);
 	}
 	window.location.hash = 'menu'
 }
@@ -85,7 +86,7 @@ function setupSinglePageApplication() {
 	}
 
 	document.getElementById('find-match').addEventListener('click', () => {
-		runGame();
+		runGame(matchType);
 	});
 
 	document.getElementById('2fa-button').addEventListener('click', () => {
@@ -151,6 +152,23 @@ function setupSinglePageApplication() {
 		localStorage.removeItem("access_token");
 		localStorage.removeItem("access_token_expires_at");
 		window.location.reload();
+	});
+
+	var matchTypeElement = document.getElementById('matchTypeElement');
+	matchTypeElement.addEventListener('change', () => {
+		console.log("CHANGING MATCH TYPE: ", matchTypeElement.value);
+		if (matchTypeElement.value === "simpleMatch") {
+			console.log("Simple");
+			matchType = "tournamentMatch";
+		}
+		else if (matchTypeElement.value === "tournamentMatch") {
+			console.log("Tournament");
+			matchType = "tournamentMatch";
+		}
+		else {
+			console.log("Simple anyway");
+			matchType = "tournamentMatch";
+		}
 	});
 }
 

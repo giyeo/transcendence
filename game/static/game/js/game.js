@@ -7,7 +7,7 @@
 let ready = false;
 let sendInputRateMs = 12; //16 = 60fps
 let player = 'a'
-let match = "none";
+let matchName = "";
 let leftShift = 200;
 let paddleAx = leftShift + 35;
 let paddleBx = leftShift + 745;
@@ -99,7 +99,7 @@ async function onMessageWebSocket(e) {
 	}
 	if (data.type === 'handshake') {
 		player = data.player;
-		match = data.match;
+		matchName = data.match;
 	}
 	if (data.type === 'gameState') {
 		received++;
@@ -171,14 +171,14 @@ class sendWebSocket {
 			if(player === 'a') {
 				gameSocket.send(JSON.stringify({
 					aY: paddleAy,
-					match: match,
+					match: matchName,
 					player: player
 				}));
 			}
 			if(player === 'b') {
 				gameSocket.send(JSON.stringify({
 					bY: paddleBy,
-					match: match,
+					match: matchName,
 					player: player
 				}));
 			}
@@ -247,10 +247,12 @@ function startEventListeners() {
 
 const API_URL = "http://127.0.0.1:8000"
 
-async function enterQueue(userData) {
+async function enterQueue(userData, matchType) {
 	loadingScreen.style.display = 'block';
+	console.log("entering queue");
+	console.log("matchType: " + matchType, "gamemode: " + "default");
 	return new Promise((resolve, reject) => {
-		fetch(API_URL + `/game/enterQueue?matchType=${"1v1"}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + userData.access_token}})
+		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + userData.access_token}})
 			.then(response => {
 				console.log(response)
 				resolve(response)
@@ -262,13 +264,17 @@ async function enterQueue(userData) {
 	})
 }
 
-export async function startGame(userData) {
-	await enterQueue(userData);
+export async function startGame(userData, matchType) {
+	await enterQueue(userData, matchType);
 	startWebSockets();
 	startEventListeners();
 	setupGame();
 	await countDown();
+	let matchNameElement = document.getElementById('matchName');
+	matchNameElement.innerHTML = `Match: ${matchName}`;
 	await gameLoop();
+	let winnerElement = document.getElementById('winner');
+	winnerElement.innerHTML = `Winner: ${player}`;
 }
 
 //____________________________INPUT_BEGIN____________________________
