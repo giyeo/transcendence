@@ -1,6 +1,6 @@
 var userData;
 var randomUserData;
-var matchType = "tournamentMatch";
+var matchType = "simpleMatch";
 
 import {updateLanguage} from './language.js';
 import {startGame, gameSocket} from './game.js';
@@ -59,10 +59,10 @@ async function sendOTP(accessToken) {
 	}
 }
 
-async function runGame(matchType) {
+async function runGame() {
 	window.location.hash = 'game'
 	if (!gameSocket) {
-		await startGame(userData, matchType);
+		await startGame();
 	}
 	window.location.hash = 'menu'
 }
@@ -159,7 +159,7 @@ function setupSinglePageApplication() {
 		console.log("CHANGING MATCH TYPE: ", matchTypeElement.value);
 		if (matchTypeElement.value === "simpleMatch") {
 			console.log("Simple");
-			matchType = "tournamentMatch";
+			matchType = "simpleMatch";
 		}
 		else if (matchTypeElement.value === "tournamentMatch") {
 			console.log("Tournament");
@@ -167,11 +167,15 @@ function setupSinglePageApplication() {
 		}
 		else {
 			console.log("Simple anyway");
-			matchType = "tournamentMatch";
+			matchType = "simpleMatch";
 		}
 	});
 }
 
+function updateMatchType(newMatchType) {
+	matchType = newMatchType;
+}
+
 document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 
-export { userData, randomUserData}
+export { userData, randomUserData, matchType, updateMatchType, runGame }

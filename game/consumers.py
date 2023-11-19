@@ -50,6 +50,11 @@ class GameConsumer(WebsocketConsumer):
             player = self.tournamentMatch(login) 
             print("PLAYER: ", player)
             print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME 0:", tournamentMatchName0, "MATCH NAME 1:", tournamentMatchName1, "PLAYER:", player, "T_COUNT:", t_count)
+        elif matchType == 'tournamentMatchFinal':
+            print("CONNECTION ACCEPETED, TOURNAMENT MATCH FINAL")
+            player = self.simpleMatch(login) 
+            print("PLAYER: ", player)
+            print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME:", simpleMatchName, "PLAYER:", player, "COUNT:", count)
         else:
             print("MATCH TYPE NOT FOUND, SO CONNECTION CLOSE")
             self.close()

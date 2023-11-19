@@ -18,6 +18,7 @@ let paddleBy = 20 + 300 - 50;
 let paddleSizeA = 100;
 let paddleSizeB = 100;
 var gameSocket;
+var currentWinner;
 //Apenas seguram valores e setam inicialmente
 let scored = false;
 let scoreA = 0;
@@ -30,6 +31,8 @@ var ball = {
 	x: 0,
 	y: 0,
 };
+
+import { matchType, updateMatchType, userData, runGame } from './app.js';
 
 function setBallmiddle() {
 	ball.x = 400 - 10 + leftShift;
@@ -121,22 +124,34 @@ async function handleGameState(data) {
 	if(data.sound != "none")
 		playAudio(data.sound);
 	if(scoreA > 3 || scoreB > 3) {
+		if(scoreA > scoreB)
+			currentWinner = 'a';
+		else
+			currentWinner = 'b';
 		scoreA = 0;
 		scoreB = 0;
 		gameSocket.close();
+	} else {
+		paddleSizeA = data.paddleSize;
+		paddleSizeB = data.paddleSize;
+		oldBall.x = ball.x;
+		oldBall.y = ball.y;
+		ball.x = data.ballX + leftShift;
+		ball.y = data.ballY;
 	}
-	paddleSizeA = data.paddleSize;
-	paddleSizeB = data.paddleSize;
-	oldBall.x = ball.x;
-	oldBall.y = ball.y;
-	ball.x = data.ballX + leftShift;
-	ball.y = data.ballY;
 }
 
 async function onCloseWebSocket() {
 	let element = document.getElementById('countDown');
 	element.setAttribute('style', 'display: block; left: 0px; top: 280px');
-	element.innerHTML = `Game Over!`;
+	if (matchType === 'tournamentMatch') {
+		element.innerHTML = `Game Over!\nWinner of the first round is ${currentWinner}`;
+		console.log("currentWinner first round: ", currentWinner);
+	}
+	else if (matchType === 'tournamentMatchFinal') {
+		element.innerHTML = `Game Over!\nWinner of the tournament is ${currentWinner}`;
+		console.log("currentWinner tournament: ", currentWinner);
+	}
 	await sleep(1000);
 	element.setAttribute('style', 'display: block; left: 360px; top: 280px');
 	container.innerHTML = '';
@@ -145,6 +160,13 @@ async function onCloseWebSocket() {
 	scored = false;
 	setBallmiddle();
 	console.log('WebSocket closed');
+	if (currentWinner == player) {	
+		if (matchType === 'tournamentMatch') {
+			updateMatchType("tournamentMatchFinal");
+			await sleep(1000);
+			runGame();
+		}
+	}
 }
 
 async function countDown() {
@@ -247,12 +269,12 @@ function startEventListeners() {
 
 const API_URL = "http://127.0.0.1:8000"
 
-async function enterQueue(userData, matchType) {
+async function enterQueue(access_token) {
 	loadingScreen.style.display = 'block';
 	console.log("entering queue");
 	console.log("matchType: " + matchType, "gamemode: " + "default");
 	return new Promise((resolve, reject) => {
-		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + userData.access_token}})
+		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + access_token}})
 			.then(response => {
 				console.log(response)
 				resolve(response)
@@ -264,8 +286,8 @@ async function enterQueue(userData, matchType) {
 	})
 }
 
-export async function startGame(userData, matchType) {
-	await enterQueue(userData, matchType);
+export async function startGame() {
+	await enterQueue(userData.access_token);
 	startWebSockets();
 	startEventListeners();
 	setupGame();
@@ -273,8 +295,6 @@ export async function startGame(userData, matchType) {
 	let matchNameElement = document.getElementById('matchName');
 	matchNameElement.innerHTML = `Match: ${matchName}`;
 	await gameLoop();
-	let winnerElement = document.getElementById('winner');
-	winnerElement.innerHTML = `Winner: ${player}`;
 }
 
 //____________________________INPUT_BEGIN____________________________
