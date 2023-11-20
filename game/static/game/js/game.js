@@ -4,19 +4,19 @@
 //enviamos o Ay e By, são os valores inicias da posição do paddle
 
 //basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
+var multiplierWidth;
+var multiplierHeight;
 let ready = false;
 let sendInputRateMs = 12; //16 = 60fps
 let player = 'a'
 let matchName = "";
-let leftShift = 200;
-let paddleAx = leftShift + 35;
-let paddleBx = leftShift + 745;
+let leftShift = 200 * multiplierWidth;
 let startCountDown = false;
 //É declarado no front-end mesmo, podemos fazer uma lógica para pegar do backend no handshake.
-let paddleAy = 20 + 300 - 50;
-let paddleBy = 20 + 300 - 50;
-let paddleSizeA = 100;
-let paddleSizeB = 100;
+let paddleAy = (20.0 + 300.0 - 50.0) * multiplierHeight;
+let paddleBy = (20.0 + 300.0 - 50.0) * multiplierHeight;
+let paddleSizeA = 100 * multiplierHeight;
+let paddleSizeB = 100 * multiplierHeight;
 var gameSocket;
 var currentWinner;
 //Apenas seguram valores e setam inicialmente
@@ -35,8 +35,8 @@ var ball = {
 import { matchType, updateMatchType, userData, runGame } from './app.js';
 
 function setBallmiddle() {
-	ball.x = 400 - 10 + leftShift;
-	ball.y = 300 + 10;
+	ball.x = (400 - 10 + leftShift) * multiplierWidth;
+	ball.y = (300 + 10) * multiplierHeight;
 }
 
 //____________________________UTILS_BEGIN____________________________
@@ -116,9 +116,10 @@ async function onMessageWebSocket(e) {
 
 async function handleGameState(data) {
 	if (player === 'b')
-		paddleAy = data.aY;
+		paddleAy = data.aY * multiplierHeight;
 	if (player === 'a')
-		paddleBy = data.bY;
+		paddleBy = data.bY * multiplierHeight;
+	console.log("RECEIBED", paddleAy, paddleBy);
 	scoreA = data.scoreA;
 	scoreB = data.scoreB;
 	if(data.sound != "none")
@@ -132,12 +133,12 @@ async function handleGameState(data) {
 		scoreB = 0;
 		gameSocket.close();
 	} else {
-		paddleSizeA = data.paddleSize;
-		paddleSizeB = data.paddleSize;
+		paddleSizeA = data.paddleSize * multiplierHeight;
+		paddleSizeB = data.paddleSize * multiplierHeight;
 		oldBall.x = ball.x;
 		oldBall.y = ball.y;
-		ball.x = data.ballX + leftShift;
-		ball.y = data.ballY;
+		ball.x = (data.ballX * multiplierWidth) + leftShift;
+		ball.y = data.ballY * multiplierHeight;
 	}
 }
 
@@ -189,17 +190,20 @@ async function countDown() {
 
 class sendWebSocket {
 	static async sendPaddlePosition() {
+		let sAy = paddleAy / multiplierHeight;
+		let sBy = paddleBy / multiplierHeight;
+		console.log(sBy, sAy)
 		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
 			if(player === 'a') {
 				gameSocket.send(JSON.stringify({
-					aY: paddleAy,
+					aY: sAy,
 					match: matchName,
 					player: player
 				}));
 			}
 			if(player === 'b') {
 				gameSocket.send(JSON.stringify({
-					bY: paddleBy,
+					bY: sBy,
 					match: matchName,
 					player: player
 				}));
@@ -286,7 +290,10 @@ async function enterQueue(access_token) {
 	})
 }
 
-export async function startGame() {
+export async function startGame(mWidth, mHeight) {
+	multiplierWidth = mWidth;
+	multiplierHeight = mHeight;
+	console.log(mHeight, multiplierHeight, mWidth, multiplierWidth);
 	await enterQueue(userData.access_token);
 	startWebSockets();
 	startEventListeners();
@@ -319,15 +326,15 @@ function startContinuousMove(direction) {
 		isKeyDown = true;
 		keyDownInterval = setInterval(() => {
 			if (direction === 'up') {
-				if(player == 'a' && paddleAy >= 30)
-					paddleAy -= 10; // Move rectangle 1 upward
-				if(player == 'b' && paddleBy >= 30)
-					paddleBy -= 10;
+				if(player == 'a' && paddleAy >= 30.0 * multiplierHeight)
+					paddleAy -= 10.0 * multiplierHeight; // Move rectangle 1 upward
+				if(player == 'b' && paddleBy >= 30.0 * multiplierHeight)
+					paddleBy -= 10.0 * multiplierHeight;
 			} else if (direction === 'down') {
-				if(player == 'a' && paddleAy < 520)
-					paddleAy += 10; // Move rectangle 2 downward
-				if(player == 'b' && paddleBy < 520)
-					paddleBy += 10;
+				if(player == 'a' && paddleAy < 520.0 * multiplierHeight)
+					paddleAy += 10.0 * multiplierHeight; // Move rectangle 2 downward
+				if(player == 'b' && paddleBy < 520.0 * multiplierHeight)
+					paddleBy += 10.0 * multiplierHeight;
 			}
 			
 			movePaddleClient();
@@ -347,72 +354,71 @@ function handleKeyDown(event) {
 }
 
 function setupGame() {
-	leftShift = window.innerWidth / 2 - 400;
+	leftShift = window.innerWidth / 2 - (400 * multiplierWidth);
 	setBallmiddle();
 	var elementPositions = [
 		{
 			top: paddleAy,
-			left: leftShift + 35,
-			width: 20,
+			left: leftShift + (35 * multiplierWidth),
+			width: (20 * multiplierWidth),
 			height: paddleSizeA,
 			element: document.getElementById('paddleA')
 			
 		},
 		{
 			top: paddleBy,
-			left: leftShift + 745,
-			width: 20,
+			left: leftShift + (745 * multiplierWidth),
+			width: (20 * multiplierWidth),
 			height: paddleSizeB,
 			element: document.getElementById('paddleB')
 		},
 		{
 			top: ball.y,
 			left: ball.x,
-			width: 20,
-			height: 20,
+			height: 20 * multiplierHeight,
 			element: document.getElementById('ball')
 		},
 		{
 			top: 0,
 			left: leftShift,
-			width: 800,
-			height: 20,
+			width: 800 * multiplierWidth,
+			height: 20 * multiplierHeight,
 			element: document.getElementById('horizontalWallLeft')
 		},
 		{
-			top: 310,
+			top: 310 * multiplierHeight,
 			left: leftShift,
-			width: 800,
-			height: 20,
+			width: 800 * multiplierWidth,
+			height: 20 * multiplierHeight,
 			element: document.getElementById('horizontalWallMid')
 		},
 		{
-			top: 620,
+			top: 620 * multiplierHeight,
 			left: leftShift,
-			width: 800,
-			height: 20,
+			width: 800 * multiplierWidth,
+			height: 20 * multiplierHeight,
 			element: document.getElementById('horizontalWallRight')
 		},
 		{
-			top: 20,
-			left: leftShift + 390,
-			width: 20,
-			height: 600,
+			top: 20 * multiplierHeight,
+			left: leftShift + (390 * multiplierWidth),
+			width: 20 * multiplierWidth,
+			height: 600 * multiplierHeight,
 			element: document.getElementById('verticalWall')
 		},
 		{
-			top: 60,
-			left: leftShift + 250,
+			top: 60 * multiplierHeight,
+			left: leftShift + (250 * multiplierWidth),
 			element: document.getElementById('scoreA')
 		},
 		{
-			top: 60,
-			left: leftShift + 460,
+			top: 60 * multiplierHeight,
+			left: leftShift + (460 * multiplierWidth),
 			element: document.getElementById('scoreB')
 		},
 		{
-			top: 280,
-			left: leftShift + 360,
+			top: 280 * multiplierHeight,
+			left: leftShift + 360 * multiplierWidth,
 			element: document.getElementById('countDown')
 		}
 	]
@@ -436,25 +442,24 @@ function movePaddleClient() {
 }
 
 async function drawGame(ballX, ballY) {
-	leftShift = window.innerWidth / 2 - 400;
 	var elementPositions = [
 		{
 			top: ballY,
 			left: ballX,
-			height: 20,
+			height: 20 * multiplierHeight,
 			element: document.getElementById('ball'),
 			player: 'none'
 		},
 		{
 			top: paddleAy,
-			left: leftShift + 35,
+			left: leftShift + (35 * multiplierWidth),
 			height: paddleSizeA,
 			element: document.getElementById('paddleA'),
 			player: 'a'
 		},
 		{
 			top: paddleBy,
-			left: leftShift + 745,
+			left: leftShift + (745 * multiplierWidth),
 			height: paddleSizeB,
 			element: document.getElementById('paddleB'),
 			player: 'b'
