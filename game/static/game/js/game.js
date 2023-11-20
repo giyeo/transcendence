@@ -4,19 +4,19 @@
 //enviamos o Ay e By, são os valores inicias da posição do paddle
 
 //basicamente todos os valores abaixo podem ser acordados no handshake, para nenhum jogador ter vantagem em cima do outro.
-var multiplierWidth;
-var multiplierHeight;
+let multiplierWidth = 1;
+let multiplierHeight = 1;
 let ready = false;
 let sendInputRateMs = 12; //16 = 60fps
 let player = 'a'
 let matchName = "";
-let leftShift = 200 * multiplierWidth;
+let leftShift;
 let startCountDown = false;
 //É declarado no front-end mesmo, podemos fazer uma lógica para pegar do backend no handshake.
 let paddleAy;
 let paddleBy;
-let paddleSizeA = 100 * multiplierHeight;
-let paddleSizeB = 100 * multiplierHeight;
+let paddleSizeA;
+let paddleSizeB;
 var gameSocket;
 var currentWinner;
 //Apenas seguram valores e setam inicialmente
@@ -72,6 +72,8 @@ function addPosition(x, y) {
 	ballElement.className = 'ball';
 	ballElement.style.top = `${y}px`;
 	ballElement.style.left = `${x}px`;
+	ballElement.style.width = `${20 * multiplierWidth}px`;
+	ballElement.style.height = `${20 * multiplierHeight}px`;
 	ballElement.style.opacity = '0.1';
 
 	// Set custom attributes to identify this element
@@ -90,7 +92,7 @@ function onOpenWebSocket(e) {
 
 var received = 0;
 setInterval(function() {
-	console.log("received: ", received, "/s");
+	//console.log("received: ", received, "/s");
 	received = 0;
 }, 1000);
 
@@ -119,12 +121,12 @@ async function handleGameState(data) {
 		paddleAy = data.aY * multiplierHeight;
 	if (player === 'a')
 		paddleBy = data.bY * multiplierHeight;
-	console.log("RECEIBED", paddleAy, paddleBy);
+	//console.log("RECEIBED", paddleAy, paddleBy);
 	scoreA = data.scoreA;
 	scoreB = data.scoreB;
 	if(data.sound != "none")
 		playAudio(data.sound);
-	if(scoreA > 3 || scoreB > 3) {
+	if(scoreA > 20 || scoreB > 20) {
 		if(scoreA > scoreB)
 			currentWinner = 'a';
 		else
@@ -190,10 +192,10 @@ async function countDown() {
 
 class sendWebSocket {
 	static async sendPaddlePosition() {
-		console.log(paddleAy, paddleBy, multiplierHeight);
+		//console.log(paddleAy, paddleBy, multiplierHeight);
 		let sAy = paddleAy / multiplierHeight;
 		let sBy = paddleBy / multiplierHeight;
-		console.log(sBy, sAy)
+		//console.log(sBy, sAy)
 		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
 			if(player === 'a') {
 				gameSocket.send(JSON.stringify({
@@ -291,19 +293,13 @@ async function enterQueue(access_token) {
 	})
 }
 
-export async function startGame(mWidth, mHeight) {
-	multiplierWidth = mWidth;
-	multiplierHeight = mHeight;
-	paddleAy = (20.0 + 300.0 - 50.0) * multiplierHeight;
-	paddleBy = (20.0 + 300.0 - 50.0) * multiplierHeight;
-	console.log(mHeight, multiplierHeight, mWidth, multiplierWidth);
+export async function startGame() {
+	calculateLargest4x3Size();
 	await enterQueue(userData.access_token);
 	startWebSockets();
 	startEventListeners();
 	setupGame();
 	await countDown();
-	let matchNameElement = document.getElementById('matchName');
-	matchNameElement.innerHTML = `Match: ${matchName}`;
 	await gameLoop();
 }
 
@@ -379,6 +375,7 @@ function setupGame() {
 			top: ball.y,
 			left: ball.x,
 			height: 20 * multiplierHeight,
+			width: 20 * multiplierWidth,
 			element: document.getElementById('ball')
 		},
 		{
@@ -407,16 +404,19 @@ function setupGame() {
 			left: leftShift + (390 * multiplierWidth),
 			width: 20 * multiplierWidth,
 			height: 600 * multiplierHeight,
+			borderleft: 20 * multiplierWidth,
 			element: document.getElementById('verticalWall')
 		},
 		{
 			top: 60 * multiplierHeight,
 			left: leftShift + (250 * multiplierWidth),
+			fontsize: 100 * multiplierWidth,
 			element: document.getElementById('scoreA')
 		},
 		{
 			top: 60 * multiplierHeight,
 			left: leftShift + (460 * multiplierWidth),
+			fontsize: 100 * multiplierWidth,
 			element: document.getElementById('scoreB')
 		},
 		{
@@ -426,15 +426,56 @@ function setupGame() {
 		}
 	]
 	for (let elementPosition of elementPositions) {
+		
+		//console.log("elementPosition.element: ", elementPosition.element);
+		if (elementPosition.element.id == 'scoreA' || elementPosition.element.id == 'scoreB') {
+			console.log("elementPosition.fontsize: ", elementPosition.fontsize);
+			elementPosition.element.style.fontSize = `${elementPosition.fontsize}px`;
+		}
+		if (elementPosition.element.id == 'verticalWall') {
+			console.log("elementPosition.borderleft: ", elementPosition.borderleft);
+			elementPosition.element.style.borderLeft = `${elementPosition.borderleft}px dashed black`;
+		}
 		elementPosition.element.style.top = `${elementPosition.top}px`;
 		elementPosition.element.style.left = `${elementPosition.left}px`;
-		if (elementPosition.element !== 'scoreA'
-		 && elementPosition.element !== 'scoreB'
-		 && elementPosition.element !== 'countDown') {
+		if (elementPosition.element.id !== 'countDown') {
+			console.log("INSIDE != COUNTDOWN > elementPosition.width: ", elementPosition.element.id);
 			elementPosition.element.style.height = `${elementPosition.height}px`;
 			elementPosition.element.style.width = `${elementPosition.width}px`;
 		}
+
 	}
+}
+
+function calculateLargest4x3Size() {
+	const targetAspectRatio = 4 / 3;
+	const windowWidth = window.innerWidth;
+	const windowHeight = window.innerHeight - 80; // naive way of doing it, rafinha receba ;-D
+	console.log("WINDOWD WIDTH AND HEIGHT: ", windowWidth, windowHeight)
+  
+	let width = windowWidth;
+	let height = windowHeight;
+  
+	if (width / height > targetAspectRatio) {
+	  width = height * targetAspectRatio;
+	} else {
+	  height = width / targetAspectRatio;
+	}
+  
+	width = Math.floor(width);
+	height = Math.floor(height);
+
+	multiplierWidth = width / 800;
+	console.log("multiplierWidth: ", multiplierWidth)
+	multiplierHeight = height / 600;
+	console.log("multiplierHeight: ", multiplierHeight)
+
+	console.log(`Largest 4:3 compatible size: ${width} x ${height}`);
+	leftShift = 200 * multiplierWidth;
+	paddleSizeA = 100 * multiplierHeight;
+	paddleSizeB = 100 * multiplierHeight;
+	paddleAy = (20.0 + 300.0 - 50.0) * multiplierHeight;
+	paddleBy = (20.0 + 300.0 - 50.0) * multiplierHeight;
 }
 
 function movePaddleClient() {
@@ -449,6 +490,7 @@ async function drawGame(ballX, ballY) {
 		{
 			top: ballY,
 			left: ballX,
+			width: 20 * multiplierWidth,
 			height: 20 * multiplierHeight,
 			element: document.getElementById('ball'),
 			player: 'none'
