@@ -1,8 +1,6 @@
 var userData;
 var randomUserData;
 var matchType = "simpleMatch";
-var multiplierWidth;
-var multiplierHeight;
 
 import {updateLanguage} from './language.js';
 import {startGame, gameSocket} from './game.js';
@@ -64,38 +62,13 @@ async function sendOTP(accessToken) {
 async function runGame() {
 	window.location.hash = 'game'
 	if (!gameSocket) {
-		await startGame(multiplierWidth, multiplierHeight);
+		await startGame();
 	}
 	window.location.hash = 'menu'
 }
 
-function calculateLargest4x3Size(innerWidth, innerHeight) {
-	const targetAspectRatio = 4 / 3;
-  
-	let width = innerWidth;
-	let height = innerHeight;
-  
-	// Check if the width needs to be adjusted
-	if (width / height <= targetAspectRatio) {
-		height = width / targetAspectRatio;
-		multiplierHeight = height / 600;
-	}
-	// Round to integers
-	width = Math.floor(width);
-	height = Math.floor(height);
-	return { width, height };
-  }
-
   
 function setupSinglePageApplication() {
-	multiplierHeight = 1;
-	multiplierWidth = 1;
-	const windowWidth = window.innerWidth;
-	const windowHeight = window.innerHeight;
-	const largestSize = calculateLargest4x3Size(windowWidth, windowHeight);
-	console.log(`Largest 4:3 compatible size: ${largestSize.width} x ${largestSize.height}`);
-	console.log(window.innerWidth, window.innerHeight)
-
 	let intraCode = UTIL.getIntraCode();
 	let intraAccessToken = UTIL.getIntraAccessToken();
 	let accessToken = UTIL.getAccessToken();
