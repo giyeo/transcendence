@@ -13,8 +13,8 @@ let matchName = "";
 let leftShift = 200 * multiplierWidth;
 let startCountDown = false;
 //É declarado no front-end mesmo, podemos fazer uma lógica para pegar do backend no handshake.
-let paddleAy = (20.0 + 300.0 - 50.0) * multiplierHeight;
-let paddleBy = (20.0 + 300.0 - 50.0) * multiplierHeight;
+let paddleAy;
+let paddleBy;
 let paddleSizeA = 100 * multiplierHeight;
 let paddleSizeB = 100 * multiplierHeight;
 var gameSocket;
@@ -190,6 +190,7 @@ async function countDown() {
 
 class sendWebSocket {
 	static async sendPaddlePosition() {
+		console.log(paddleAy, paddleBy, multiplierHeight);
 		let sAy = paddleAy / multiplierHeight;
 		let sBy = paddleBy / multiplierHeight;
 		console.log(sBy, sAy)
@@ -293,6 +294,8 @@ async function enterQueue(access_token) {
 export async function startGame(mWidth, mHeight) {
 	multiplierWidth = mWidth;
 	multiplierHeight = mHeight;
+	paddleAy = (20.0 + 300.0 - 50.0) * multiplierHeight;
+	paddleBy = (20.0 + 300.0 - 50.0) * multiplierHeight;
 	console.log(mHeight, multiplierHeight, mWidth, multiplierWidth);
 	await enterQueue(userData.access_token);
 	startWebSockets();

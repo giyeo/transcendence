@@ -76,29 +76,25 @@ function calculateLargest4x3Size(innerWidth, innerHeight) {
 	let height = innerHeight;
   
 	// Check if the width needs to be adjusted
-	if (width / height > targetAspectRatio) {
-	  width = height * targetAspectRatio;
-	} else {
-	  // Adjust height if necessary
-	  height = width / targetAspectRatio;
+	if (width / height <= targetAspectRatio) {
+		height = width / targetAspectRatio;
+		multiplierHeight = height / 600;
 	}
-  
 	// Round to integers
 	width = Math.floor(width);
 	height = Math.floor(height);
-  
 	return { width, height };
   }
 
   
 function setupSinglePageApplication() {
+	multiplierHeight = 1;
+	multiplierWidth = 1;
 	const windowWidth = window.innerWidth;
 	const windowHeight = window.innerHeight;
 	const largestSize = calculateLargest4x3Size(windowWidth, windowHeight);
 	console.log(`Largest 4:3 compatible size: ${largestSize.width} x ${largestSize.height}`);
 	console.log(window.innerWidth, window.innerHeight)
-	multiplierWidth = windowWidth / 800;
-	multiplierHeight = windowHeight / 600;
 
 	let intraCode = UTIL.getIntraCode();
 	let intraAccessToken = UTIL.getIntraAccessToken();
