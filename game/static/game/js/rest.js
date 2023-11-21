@@ -4,16 +4,17 @@ var API_URL = "http://127.0.0.1:8000"
 
 export async function getUserData(intraCode, intraAccessToken) {
 	try {
+		console.log("This is data before the request: " + data)
 		var data = await request("GET", API_URL + "/game/data" + "?code=" + intraCode + "&intra_access_token=" + intraAccessToken, {});
-		console.log(data);
+		console.log("This is data after the request: " + data)
 		if (data.intra_access_token) {
 			localStorage.setItem("intra_access_token", data.intra_access_token);
-			localStorage.setItem("intra_access_token_expires_at", data.intra_access_token_expires_at);
 		}
 		if (data.access_token) {
 			localStorage.setItem("access_token", data.access_token);
-			localStorage.setItem("access_token_expires_at", data.access_token_expires_at);
 		}
+		delete data.intra_access_token;
+		delete data.access_token;
 		return (data);
 	} catch (error) {
 		console.error('Error:', error);
@@ -31,14 +32,20 @@ export async function getRandomUserData() {
 }
 
 export async function getQRCode(accessToken) {
-	try {
-		var data = await request("GET", API_URL + '/game/qrcode', {'Authorization': 'Bearer ' + accessToken}, "blob");
-		console.log(data);
-		let qrcodeImage = document.getElementById('2fa-button-qrcode');
-		qrcodeImage.src = URL.createObjectURL(data);
-		qrcodeImage.style.display = "block";
-	} catch (error) {
-		console.error('Error:', error);
+	let imageQRCode2FA = document.getElementById('2FAImageQRCode');
+	let ImageInputAndButton2FA = document.getElementById('2FAImageInputAndButton');
+	if (ImageInputAndButton2FA.style.display === "block") {
+		ImageInputAndButton2FA.style.display = "none";
+		imageQRCode2FA.src = "";
+		return;
+	} else {
+		try {
+			var data = await request("GET", API_URL + '/game/qrcode', {'Authorization': 'Bearer ' + accessToken}, "blob");
+		} catch (error) {
+			console.error('Error:', error);
+		}
+		imageQRCode2FA.src = URL.createObjectURL(data);
+		ImageInputAndButton2FA.style.display = "block";
 	}
 }
 

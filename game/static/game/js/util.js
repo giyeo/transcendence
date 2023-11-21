@@ -23,16 +23,6 @@ export function getIntraAccessToken() {
 	let intraAccessToken = localStorage.getItem("intra_access_token")
 	if (intraAccessToken) {
 		return intraAccessToken;
-		// let expiresAt = localStorage.getItem("intra_access_token_expires_at")
-		// console.l
-		// if (expiresAt > Date.now()) {
-		// 	console.log("intraAccessToken still valid")
-		// 	return intraAccessToken;
-		// } else {
-		// 	console.log("intraAccessToken expired")
-		// 	localStorage.removeItem("intra_access_token");
-		// 	localStorage.removeItem("intra_access_token_expires_at");
-		// }
 	} else {
 		return "";
 	}

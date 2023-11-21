@@ -33,6 +33,7 @@ var ball = {
 };
 
 import { matchType, updateMatchType, userData, runGame } from './app.js';
+import { getAccessToken } from './util.js';
 
 function setBallmiddle() {
 	ball.x = (400 - 10 + leftShift) * multiplierWidth;
@@ -126,7 +127,7 @@ async function handleGameState(data) {
 	scoreB = data.scoreB;
 	if(data.sound != "none")
 		playAudio(data.sound);
-	if(scoreA > 20 || scoreB > 20) {
+	if(scoreA > 3 || scoreB > 3) {
 		if(scoreA > scoreB)
 			currentWinner = 'a';
 		else
@@ -276,12 +277,12 @@ function startEventListeners() {
 
 const API_URL = "http://127.0.0.1:8000"
 
-async function enterQueue(access_token) {
+async function enterQueue() {
 	loadingScreen.style.display = 'block';
 	console.log("entering queue");
 	console.log("matchType: " + matchType, "gamemode: " + "default");
 	return new Promise((resolve, reject) => {
-		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + access_token}})
+		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
 			.then(response => {
 				console.log(response)
 				resolve(response)
@@ -295,7 +296,7 @@ async function enterQueue(access_token) {
 
 export async function startGame() {
 	calculateLargest4x3Size();
-	await enterQueue(userData.access_token);
+	await enterQueue();
 	startWebSockets();
 	startEventListeners();
 	setupGame();
@@ -386,13 +387,6 @@ function setupGame() {
 			element: document.getElementById('horizontalWallLeft')
 		},
 		{
-			top: 310 * multiplierHeight,
-			left: leftShift,
-			width: 800 * multiplierWidth,
-			height: 20 * multiplierHeight,
-			element: document.getElementById('horizontalWallMid')
-		},
-		{
 			top: 620 * multiplierHeight,
 			left: leftShift,
 			width: 800 * multiplierWidth,
@@ -434,7 +428,7 @@ function setupGame() {
 		}
 		if (elementPosition.element.id == 'verticalWall') {
 			console.log("elementPosition.borderleft: ", elementPosition.borderleft);
-			elementPosition.element.style.borderLeft = `${elementPosition.borderleft}px dashed black`;
+			elementPosition.element.style.borderLeft = `${elementPosition.borderleft}px dashed #f2f2f2`;
 		}
 		elementPosition.element.style.top = `${elementPosition.top}px`;
 		elementPosition.element.style.left = `${elementPosition.left}px`;
@@ -449,8 +443,8 @@ function setupGame() {
 
 function calculateLargest4x3Size() {
 	const targetAspectRatio = 4 / 3;
-	const windowWidth = window.innerWidth;
-	const windowHeight = window.innerHeight - 80; // naive way of doing it, rafinha receba ;-D
+	const windowWidth = window.innerWidth - 120;
+	const windowHeight = window.innerHeight - 120;
 	console.log("WINDOWD WIDTH AND HEIGHT: ", windowWidth, windowHeight)
   
 	let width = windowWidth;

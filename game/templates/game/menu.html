@@ -1,21 +1,50 @@
 {% load static %}
-<p id="displayName">Welcome Guest</p>
-<p id="loginName">Guest</p>
-<img id="image" src="{% static 'game/favicon.ico' %}" alt="placeholder" height="300px" width="300px">
-<select id="matchTypeElement">
-	<option value="simpleMatch">Simple Match</option>
-	<option value="tournamentMatch">Tournament Match</option>
-</select>
-<button id="find-match" class="translation">Find match</button>
-<button id="2fa-button" class="translation">Toggle 2FA</button>
-<img id="2fa-button-qrcode" height="300" width="300" style="display: none;"></img>
-<div id="input-activation-OTP">
-	<input id="2fa-activation-input" type="text" placeholder="2FA code"></input>
-	<button id="sendOTP" class="translation">Enter</input>
+<!-- Profile -->
+<div id="profile">
+	<img id="image" src="{% static 'game/favicon.ico' %}" alt="Profile picture" height="150px" width="150px">
+	<p id="loginName"></p>
 </div>
-<button id="logout" class="translation">Logout</button>
-<select id="languageSelectMenu">
-	<option value="en">🇬🇧 English</option>
-	<option value="pt">🇧🇷 Portuguese</option>
-	<option value="fr">🇫🇷 French</option>
-</select>
+
+<hr>
+
+<!-- Match -->
+<div id="match">
+	<button id="find-match" class="translation">Find match</button>
+	<input id="matchGivenName" pattern="[A-Za-z]+" type="text" placeholder="Choose a match name" style="display: none;"></input>
+	<select id="matchTypeElement">
+		<option value="simpleMatch">Simple Match</option>
+		<option value="tournamentMatch">Tournament Match</option>
+	</select>
+</div>
+
+<hr id="subHr">
+
+<!-- Settings -->
+<div id="settings">
+	<button id="settingsButton" class="translation">Settings</button>
+	<!-- Language -->
+	<div id="language" style="display: none;">
+		<select id="languageSelectMenu">
+			<option value="">Select language</option>
+			<option value="en">🇬🇧 English</option>
+			<option value="pt">🇧🇷 Portuguese</option>
+			<option value="fr">🇫🇷 French</option>
+		</select>
+	</div>
+	<!-- 2FA -->
+	<div id="2FA" style="display: none;">
+		<button id="2FAButtonToggle" class="translation">Toggle 2FA</button>
+		<div id="2FAImageInputAndButton" style="display: none;">
+			<img id="2FAImageQRCode" height="300" width="300"></img>
+			<input id="2FAInputOTP" type="text" placeholder="2FA code"></input>
+			<button id="2FAButtonSendOTP" class="translation">Send OTP</input>
+		</div>
+	</div>
+</div>
+
+<hr id="subHr">
+
+<!-- Logout -->
+<div id="logout">
+	<button id="logoutButton" class="translation">Logout</button>
+</div>

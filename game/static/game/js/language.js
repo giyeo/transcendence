@@ -1,6 +1,6 @@
 const translations = {
 	"login-guest": {
-		"en": "Play as Guest",
+		"en": "Play as guest",
 		"pt": "Jogar como convidado",
 		"fr": "Jouer en tant qu'invité",
 	},
@@ -14,20 +14,20 @@ const translations = {
 		"pt": "Encontrar partida",
 		"fr": "Trouver une partie",
 	},
-	"2fa-button": {
+	"2FAButtonToggle": {
 		"en": "Toggle 2FA",
 		"pt": "Alternar 2FA",
 		"fr": "Basculer la 2FA",
 	},
-	"sendOTP": {
-		"en": "Enter",
-		"pt": "Entrar",
-		"fr": "Entrer",
+	"2FAButtonSendOTP": {
+		"en": "Send OTP",
+		"pt": "Enviar OTP",
+		"fr": "Envoyer OTP",
 	},
 	"send-login-OTP": {
-		"en": "Enter",
-		"pt": "Entrar",
-		"fr": "Entrer",
+		"en": "Send OTP",
+		"pt": "Enviar OTP",
+		"fr": "Envoyer OTP",
 	},
 	"wait-other-players": {
 		"en": "Waiting for other players...",
@@ -41,13 +41,18 @@ const translations = {
 	},
 	"loading": {
 		"en": "Loading...",
-		"pt": "Esperando...",
+		"pt": "Carregando...",
 		"fr": "Chargement...",
 	},
-	"logout": {
+	"logoutButton": {
 		"en": "Logout",
 		"pt": "Sair",
-		"fr": "Se déconnecter",
+		"fr": "Déconnexion",
+	},
+	"settingsButton": {
+		"en": "Settings",
+		"pt": "Configurações",
+		"fr": "Paramètres",
 	},
 };
 

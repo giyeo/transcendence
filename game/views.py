@@ -34,11 +34,13 @@ def getToken(code):
         "code": code,
         "redirect_uri": REDIRECT_URI,
     }
+    print("Trying to getting a new token")
     try:
         r = requests.post(INTRA_API_URL_TOKEN, data=data)
         r.raise_for_status()
     except requests.exceptions.RequestException as e:
         raise e
+    print("Got a new token", r.json())
     return r.json()
 
 
@@ -53,41 +55,49 @@ def getUserData(intra_access_token):
     return r.json()
 
 
-def getUserModels(data):
+def getUserModels(login):
     try:
-        user = get_user_model().objects.get(username=data.get('login'))
-        user_local = CustomUser.objects.get(login=data.get('login'))
+        user = get_user_model().objects.get(username=login)
+        user_local = CustomUser.objects.get(login=login)
     except (get_user_model().DoesNotExist, CustomUser.DoesNotExist):
-        user = get_user_model().objects.create(username=data.get('login'))
-        user_local = CustomUser.objects.create(login=data.get('login'))
+        user = get_user_model().objects.create(username=login)
+        user_local = CustomUser.objects.create(login=login)
         user.save()
         user_local.save()
     return user, user_local
 
 
+def makeNewData(data):
+    new_data = {}
+    new_data["login"] = data["login"]
+    new_data["image"] = data["image"]
+    return new_data
+
 @api_view(['GET'])
 def userData(request):
     code = request.GET.get('code')
     intra_access_token = request.GET.get('intra_access_token')
+    new_data = {}
     if not intra_access_token:
         if code is None:
             return JsonResponse({"detail": "No code provided"}, status=400)
         tokenData = getToken(code)
         intra_access_token = tokenData["access_token"]
         data = getUserData(intra_access_token)
-        user, user_local = getUserModels(data)
+        new_data = makeNewData(data)
+        user, user_local = getUserModels(new_data.get("login"))
         if not user_local.twofa_enabled:
-            data["access_token"] = str(AccessToken.for_user(user))
-        data["user_id"] = str(user.id)
-        data["intra_access_token"] = str(intra_access_token)
-        data["intra_access_token_expires_at"] = str(tokenData["created_at"] + tokenData["expires_in"])
+            new_data["access_token"] = str(AccessToken.for_user(user))
+        new_data["user_id"] = str(user.id)
+        new_data["intra_access_token"] = str(intra_access_token)
     else:
         data = getUserData(intra_access_token)
-        user, user_local = getUserModels(data)
+        new_data = makeNewData(data)
+        user, user_local = getUserModels(new_data.get("login"))
         if not user_local.twofa_enabled:
-            data["access_token"] = str(AccessToken.for_user(user))
-        data["user_id"] = str(user.id)
-    return JsonResponse(data, status=200)
+            new_data["access_token"] = str(AccessToken.for_user(user))
+        new_data["user_id"] = str(user.id)
+    return JsonResponse(new_data, status=200)
 
 
 @api_view(['GET'])

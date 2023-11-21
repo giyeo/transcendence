@@ -1,6 +1,7 @@
 var userData;
 var randomUserData;
 var matchType = "simpleMatch";
+var matchGivenName = "";
 
 import {updateLanguage} from './language.js';
 import {startGame, gameSocket} from './game.js';
@@ -9,31 +10,29 @@ import * as UTIL from './util.js'
 
 function mountMenu() {
 	let img = "";
-	let displayname = "";
 	let login = "";
 	if(randomUserData) {
 		img = randomUserData.picture.large
-		displayname = randomUserData.name.first + randomUserData.name.last
 		login = randomUserData.login.username
 	}
 	if(userData) {
 		img = userData.image.versions.medium
-		displayname = userData.displayname
 		login = userData.login
 	}
 	document.getElementById("image").src = img;
-	document.getElementById("displayName").innerText = displayname;
 	document.getElementById("loginName").innerText = login;
 }
 
 async function goToMenu(intraCode, intraAccessToken) {
 	window.location.hash = 'loading'
+	let loginPage = document.getElementById("login")
+	loginPage.style.display = "none";
 	try {
 		if(intraCode || intraAccessToken)
 			userData = await REST.getUserData(intraCode, intraAccessToken);
 		else
 			await REST.getRandomUserData();
-		if (!userData["access_token"]) {
+		if (!UTIL.getAccessToken()) {
 			window.location.hash = 'login_otp'
 		}
 		else {
@@ -47,15 +46,15 @@ async function goToMenu(intraCode, intraAccessToken) {
 }
 
 async function sendOTP(accessToken) {
-	let otpText = document.getElementById('2fa-activation-input');
-	let qrcodeImage = document.getElementById('2fa-button-qrcode');
-	let inputActivationOTP = document.getElementById('input-activation-OTP')
+	let otpText = document.getElementById('2FAInputOTP');
+	let qrcodeImage = document.getElementById('2FAImageQRCode');
+	//let inputActivationOTP = document.getElementById('input-activation-OTP')
 	let a = await REST.verifyOTP(otpText.value, accessToken)
 	console.log(a)
 	if(a === 200) {
 		otpText.value = ""
 		qrcodeImage.style.display = "none"
-		inputActivationOTP.style.display = "none"
+		//inputActivationOTP.style.display = "none"
 	}
 }
 
@@ -69,6 +68,7 @@ async function runGame() {
 
   
 function setupSinglePageApplication() {
+	window.location.hash = 'login';
 	let intraCode = UTIL.getIntraCode();
 	let intraAccessToken = UTIL.getIntraAccessToken();
 	let accessToken = UTIL.getAccessToken();
@@ -77,8 +77,6 @@ function setupSinglePageApplication() {
 	var selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
 	document.getElementById("languageSelectMenu").value = selectedLanguage;
 	document.getElementById("languageSelectLogin").value = selectedLanguage;
-
-	window.location.hash = 'login';
 	UTIL.removeQueryParam('code');
 
 	if (intraCode || intraAccessToken) {
@@ -90,11 +88,11 @@ function setupSinglePageApplication() {
 		runGame(matchType);
 	});
 
-	document.getElementById('2fa-button').addEventListener('click', () => {
+	document.getElementById('2FAButtonToggle').addEventListener('click', () => {
 		REST.getQRCode(UTIL.getAccessToken())
 	});
 
-	document.getElementById('sendOTP').addEventListener('click', () => {
+	document.getElementById('2FAButtonSendOTP').addEventListener('click', () => {
 		sendOTP(accessToken);
 	});
 
@@ -132,7 +130,7 @@ function setupSinglePageApplication() {
 			localStorage.setItem("selectedLanguage", selectedLanguage);
 			updateLanguage(selectedLanguage);
 		}
-	})
+	});
 
 	var languageSelectMenu = document.getElementById('languageSelectMenu');
 	languageSelectMenu.addEventListener('change', () => {
@@ -142,18 +140,19 @@ function setupSinglePageApplication() {
 			updateLanguage(selectedLanguage);
 			REST.sendLanguage(accessToken, selectedLanguage);
 		}
-	})
+	});
 
 	updateLanguage(selectedLanguage);
 
-	var logoutButton = document.getElementById('logout');
+	var logoutButton = document.getElementById('logoutButton');
 	logoutButton.addEventListener('click', () => {
 		localStorage.removeItem("intra_access_token");
-		localStorage.removeItem("intra_access_token_expires_at");
 		localStorage.removeItem("access_token");
 		localStorage.removeItem("access_token_expires_at");
 		window.location.reload();
 	});
+
+	var matchGivenNameElement = document.getElementById('matchGivenName');
 
 	var matchTypeElement = document.getElementById('matchTypeElement');
 	matchTypeElement.addEventListener('change', () => {
@@ -164,12 +163,27 @@ function setupSinglePageApplication() {
 		}
 		else if (matchTypeElement.value === "tournamentMatch") {
 			console.log("Tournament");
+			matchGivenNameElement.style.display = "block";
+			matchGivenName = matchGivenNameElement.value;
 			matchType = "tournamentMatch";
 		}
 		else {
 			console.log("Simple anyway");
 			matchType = "simpleMatch";
 		}
+	});
+
+	var settingsButtonElement = document.getElementById('settingsButton');
+	settingsButtonElement.addEventListener('click', () => {
+		let languageElement = document.getElementById('language');
+		let _2FAElement = document.getElementById('2FA');
+		if (languageElement.style.display === "block" && _2FAElement.style.display === "block") {
+			languageElement.style.display = "none";
+			_2FAElement.style.display = "none";
+			return ;
+		}
+		languageElement.style.display = "block";
+		_2FAElement.style.display = "block";
 	});
 }
 
