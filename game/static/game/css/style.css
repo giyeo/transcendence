@@ -31,6 +31,44 @@ body {
 	background-color: var(--background-color);
 }
 
+#otpLoginContainer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+
+#otpLoginContainer div {
+	margin: 20px;
+}
+
+#otpLoginContainer p {
+	color: var(--input-text-color);
+	text-align: center;
+	margin: 10px;
+}
+
+#otpLoginContainer button {
+	background-color: var(--button-bg-color);
+	color: var(--button-text-color);
+	border: none;
+	border-radius: 5px;
+	padding: 10px;
+	margin: 10px;
+	cursor: pointer;
+}
+
+#otpLoginContainer input {
+	background-color: var(--input-bg-color);
+	color: var(--input-text-color);
+	border: none;
+	border-radius: 5px;
+	padding: 10px;
+	margin: 10px;
+}
+
 #menuContainer {
 	display: flex;
 	flex-direction: column;

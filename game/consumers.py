@@ -31,7 +31,6 @@ class GameConsumer(WebsocketConsumer):
     def connect(self):
         print("-------------------------")
         global simpleMatchName, count
-        #chamar tipo de matchjmaking especifico
         userId = Queue.objects.last().user_id
         login = Queue.objects.last().login
         matchType = Queue.objects.last().match_type

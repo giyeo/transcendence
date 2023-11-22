@@ -1,4 +1,4 @@
-import { userData, logout } from './app.js'
+import { userData, updateUserData, updateRandomUserData, logout } from './app.js'
 
 var API_URL = "http://127.0.0.1:8000"
 
@@ -15,7 +15,7 @@ export async function getUserData(intraCode, intraAccessToken) {
 		}
 		delete data.intra_access_token;
 		delete data.access_token;
-		return (data);
+		updateUserData(data);
 	} catch (error) {
 		console.error('Error:', error);
 	}
@@ -25,7 +25,7 @@ export async function getRandomUserData() {
 	try {
 		var data = await request("GET", "https://randomuser.me/api/", {});
 		console.log(data);
-		randomUserData = data.results[0]
+		updateRandomUserData(data.results[0]);
 	} catch (error) {
 		console.error('Error:', error);
 	}

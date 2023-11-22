@@ -178,7 +178,6 @@ def updateLanguage(request):
     return JsonResponse({}, status=400)
 
 
-
 @api_view (['GET'])
 @permission_classes((IsAuthenticated,))
 def enterQueue(request):
@@ -193,4 +192,21 @@ def enterQueue(request):
                                  match_suggested_name=matchSuggestedName)
     queue.save()
     #login, matchType, gamemode
+    return JsonResponse({}, status=200)
+
+
+@api_view (['GET'])
+def enterQueueRandom(request):
+    username = request.GET.get('username')
+    matchType = "simpleMatch"
+    gamemode = "default"
+    matchSuggestedName = ""
+    if not username:
+        return JsonResponse({}, status=400)
+    queue = Queue.objects.create(user_id=42,
+                                 login=username,
+                                 match_type=matchType,
+                                 gamemode=gamemode,
+                                 match_suggested_name=matchSuggestedName)
+    queue.save()
     return JsonResponse({}, status=200)

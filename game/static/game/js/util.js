@@ -15,8 +15,9 @@ export function getIntraCode() {
 	let urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('code')) {
 		return urlParams.get('code');
+	} else {
+		return "";
 	}
-	return "";
 }
 
 export function getIntraAccessToken() {

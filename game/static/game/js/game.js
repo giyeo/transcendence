@@ -32,7 +32,7 @@ var ball = {
 	y: 0,
 };
 
-import { matchType, matchSuggestedName, updateMatchType, userData, runGame } from './app.js';
+import { matchType, matchSuggestedName, updateMatchType, userData, runGame, randomUserData } from './app.js';
 import { getAccessToken } from './util.js';
 
 function setBallmiddle() {
@@ -273,8 +273,6 @@ const API_URL = "http://127.0.0.1:8000"
 
 async function enterQueue() {
 	loadingScreen.style.display = 'block';
-	console.log("entering queue");
-	console.log("matchType: " + matchType, "gamemode: " + "default", "matchSuggestedName: " + matchSuggestedName);
 	return new Promise((resolve, reject) => {
 		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}&matchSuggestedName=${matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
 			.then(response => {
@@ -288,9 +286,30 @@ async function enterQueue() {
 	})
 }
 
+async function enterQueueRandom() {
+	loadingScreen.style.display = 'block';
+	return new Promise((resolve, reject) => {
+		fetch(API_URL + `/game/enterQueueRandom?username=${randomUserData.login.username}`)
+			.then(response => {
+				console.log(response)
+				resolve(response)
+			})
+			.catch(error => {
+				console.error('There was a problem with the fetch operation:', error);
+				resolve(error);
+			});
+	})
+}
+
 export async function startGame() {
 	calculateLargest4x3Size();
-	await enterQueue();
+	if (userData) {
+		await enterQueue();
+		console.log("User as 42")
+	} else if (randomUserData) {
+		await enterQueueRandom();
+		console.log("User as random")
+	}
 	startWebSockets();
 	startEventListeners();
 	setupGame();

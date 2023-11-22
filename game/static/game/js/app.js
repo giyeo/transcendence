@@ -25,19 +25,27 @@ function mountMenu() {
 
 async function goToMenu(intraCode, intraAccessToken) {
 	window.location.hash = 'loading'
-	let loginPage = document.getElementById("login")
-	loginPage.style.display = "none";
 	try {
-		if(intraCode || intraAccessToken)
-			userData = await REST.getUserData(intraCode, intraAccessToken);
-		else
+		if(intraCode || intraAccessToken) {
+			await REST.getUserData(intraCode, intraAccessToken);
+			if (userData) {
+				if (!UTIL.getAccessToken()) {
+					window.location.hash = 'login_otp'
+				}
+				else {
+					mountMenu();
+					window.location.hash = 'menu'
+				}
+			}
+		} else {
 			await REST.getRandomUserData();
-		if (!UTIL.getAccessToken()) {
-			window.location.hash = 'login_otp'
-		}
-		else {
-			mountMenu();
-			window.location.hash = 'menu'
+			if (randomUserData) {
+				mountMenu();
+				window.location.hash = 'menu'
+			} else {
+				window.location.hash = 'login'
+			}
+
 		}
 	} catch (error) {
 		console.error('Error getting user data:', error);
@@ -67,6 +75,8 @@ async function runGame() {
 }
 
 function logout() {
+	randomUserData = null;
+	userData = null;
 	localStorage.removeItem("intra_access_token");
 	localStorage.removeItem("access_token");
 	localStorage.removeItem("access_token_expires_at");
@@ -97,16 +107,25 @@ function setupSinglePageApplication() {
 		matchSuggestedNameElement.value = "";
 	});
 
-	document.getElementById('2FAButtonToggle').addEventListener('click', () => {
+	var buttonToggle2FA = document.getElementById('2FAButtonToggle')
+	buttonToggle2FA.addEventListener('click', () => {
 		REST.getQRCode(UTIL.getAccessToken())
 	});
 
-	document.getElementById('2FAButtonSendOTP').addEventListener('click', () => {
+	var buttonSendOTP = document.getElementById('2FAButtonSendOTP')
+	buttonSendOTP.addEventListener('click', () => {
 		sendOTP(accessToken);
 	});
 
+	var matchTypeElement = document.getElementById('matchTypeElement');
+
 	document.getElementById('login-guest').addEventListener('click', () => {
 		goToMenu();
+		matchTypeElement.style.display = "none";
+		buttonToggle2FA.removeEventListener("click", () => {});
+		buttonToggle2FA.style.display = "none";
+		buttonSendOTP.removeEventListener("click", () => {});
+
 	});
 
 	document.getElementById('send-login-OTP').addEventListener('click', () => {
@@ -160,7 +179,6 @@ function setupSinglePageApplication() {
 
 	var selectTournamentNameElement = document.getElementById('selectTournamentName');
 
-	var matchTypeElement = document.getElementById('matchTypeElement');
 	matchTypeElement.value = "simpleMatch";
 	matchTypeElement.addEventListener('change', () => {
 		console.log("CHANGING MATCH TYPE: ", matchTypeElement.value);
@@ -200,6 +218,14 @@ function updateMatchType(newMatchType) {
 	matchType = newMatchType;
 }
 
+function updateUserData(newUserData) {
+	userData = newUserData;
+}
+
+function updateRandomUserData(newRandomUserData) {
+	randomUserData = newRandomUserData;
+}
+
 document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 
-export { userData, randomUserData, matchType, updateMatchType, runGame, logout, matchSuggestedName }
+export { userData, updateUserData, randomUserData, matchType, updateMatchType, runGame, logout, matchSuggestedName, updateRandomUserData }
