@@ -184,8 +184,13 @@ def updateLanguage(request):
 def enterQueue(request):
     matchType = request.GET.get('matchType')
     gamemode = request.GET.get('gamemode')
-    print(request.user.id, matchType, gamemode)
-    queue = Queue.objects.create(user_id=request.user.id, login=request.user.username, match_type=matchType, gamemode=gamemode)
+    matchSuggestedName = request.GET.get('matchSuggestedName')
+    print(request.user.id, matchType, gamemode, matchSuggestedName)
+    queue = Queue.objects.create(user_id=request.user.id,
+                                 login=request.user.username,
+                                 match_type=matchType,
+                                 gamemode=gamemode,
+                                 match_suggested_name=matchSuggestedName)
     queue.save()
     #login, matchType, gamemode
     return JsonResponse({}, status=200)

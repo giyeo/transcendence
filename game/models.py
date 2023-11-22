@@ -14,3 +14,4 @@ class Queue(models.Model):
     login = models.CharField(max_length=42)
     gamemode = models.CharField(max_length=32, default="default")
     match_type = models.CharField(max_length=32, default="default")
+    match_suggested_name = models.CharField(max_length=32, default="")

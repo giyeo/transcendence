@@ -1,7 +1,7 @@
 var userData;
 var randomUserData;
 var matchType = "simpleMatch";
-var matchGivenName = "";
+var matchSuggestedName = "";
 
 import {updateLanguage} from './language.js';
 import {startGame, gameSocket} from './game.js';
@@ -81,6 +81,7 @@ function setupSinglePageApplication() {
 	console.log("intraCode: " + intraCode)
 	console.log("intraAccessToken: " + intraAccessToken)
 	var selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
+	var matchSuggestedNameElement = document.getElementById('matchSuggestedName');
 	document.getElementById("languageSelectMenu").value = selectedLanguage;
 	document.getElementById("languageSelectLogin").value = selectedLanguage;
 	UTIL.removeQueryParam('code');
@@ -91,7 +92,9 @@ function setupSinglePageApplication() {
 	}
 
 	document.getElementById('find-match').addEventListener('click', () => {
-		runGame(matchType);
+		matchSuggestedName = matchSuggestedNameElement.value;
+		runGame();
+		matchSuggestedNameElement.value = "";
 	});
 
 	document.getElementById('2FAButtonToggle').addEventListener('click', () => {
@@ -155,25 +158,28 @@ function setupSinglePageApplication() {
 		logout();
 	});
 
-	var matchGivenNameElement = document.getElementById('matchGivenName');
+	var selectTournamentNameElement = document.getElementById('selectTournamentName');
 
 	var matchTypeElement = document.getElementById('matchTypeElement');
+	matchTypeElement.value = "simpleMatch";
 	matchTypeElement.addEventListener('change', () => {
 		console.log("CHANGING MATCH TYPE: ", matchTypeElement.value);
 		if (matchTypeElement.value === "simpleMatch") {
 			console.log("Simple");
 			matchType = "simpleMatch";
+			selectTournamentNameElement.style.display = "none";
 		}
 		else if (matchTypeElement.value === "tournamentMatch") {
 			console.log("Tournament");
-			matchGivenNameElement.style.display = "block";
-			matchGivenName = matchGivenNameElement.value;
 			matchType = "tournamentMatch";
+			selectTournamentNameElement.style.display = "block";
 		}
 		else {
 			console.log("Simple anyway");
 			matchType = "simpleMatch";
+			selectTournamentNameElement.style.display = "none";
 		}
+		matchSuggestedNameElement.value = "";
 	});
 
 	var settingsButtonElement = document.getElementById('settingsButton');
@@ -196,4 +202,4 @@ function updateMatchType(newMatchType) {
 
 document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 
-export { userData, randomUserData, matchType, updateMatchType, runGame, logout }
+export { userData, randomUserData, matchType, updateMatchType, runGame, logout, matchSuggestedName }

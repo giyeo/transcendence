@@ -10,11 +10,13 @@
 <!-- Match -->
 <div id="match">
 	<button id="find-match" class="translation">Find match</button>
-	<input id="matchGivenName" pattern="[A-Za-z]+" type="text" placeholder="Choose a match name" style="display: none;"></input>
 	<select id="matchTypeElement">
-		<option value="simpleMatch">Simple Match</option>
+		<option value="simpleMatch" selected>Simple Match</option>
 		<option value="tournamentMatch">Tournament Match</option>
 	</select>
+	<div id="selectTournamentName" style="display: none;">
+		<input id="matchSuggestedName" type="text" placeholder="Choose a tournament name"></input>
+	</div>
 </div>
 
 <hr id="subHr">

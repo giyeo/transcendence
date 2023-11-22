@@ -70,6 +70,15 @@ body {
 	background-color: var(--border-color);
 }
 
+#menu input {
+	background-color: var(--input-bg-color);
+	color: var(--input-text-color);
+	border: none;
+	border-radius: 5px;
+	padding: 10px;
+	margin: 10px;
+}
+
 #login div {
 	margin: 20px;
 }

@@ -36,6 +36,7 @@ class GameConsumer(WebsocketConsumer):
         login = Queue.objects.last().login
         matchType = Queue.objects.last().match_type
         gamemode = Queue.objects.last().gamemode
+        matchSuggestedName = Queue.objects.last().match_suggested_name
         print("MATCH TYPE: ", matchType)
         print("GAMEMODE: ", gamemode)
         self.accept()
@@ -47,7 +48,7 @@ class GameConsumer(WebsocketConsumer):
             print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME:", simpleMatchName, "PLAYER:", player, "COUNT:", count)
         elif matchType == 'tournamentMatch':
             print("CONNECTION ACCEPETED, TOURNAMENT MATCH")
-            player = self.tournamentMatch(login) 
+            player = self.tournamentMatch(login, matchSuggestedName) 
             print("PLAYER: ", player)
             print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME 0:", tournamentMatchName0, "MATCH NAME 1:", tournamentMatchName1, "PLAYER:", player, "T_COUNT:", t_count)
         elif matchType == 'tournamentMatchFinal':
@@ -60,7 +61,7 @@ class GameConsumer(WebsocketConsumer):
             self.close()
 
 
-    def tournamentMatch(self, login):
+    def tournamentMatch(self, login, matchSuggestedName):
         """
             Tournament match will have 4 players
             Two players will fight in a 1v1 match
@@ -90,7 +91,7 @@ class GameConsumer(WebsocketConsumer):
         elif t_count % 4 == 3:
             t_count += 1
             print("PLAYER D")
-            self.newTournamentMatch()
+            self.newTournamentMatch(matchSuggestedName)
             return 'b'
 
 
@@ -137,17 +138,17 @@ class GameConsumer(WebsocketConsumer):
         return match_name
 
 
-    def doTournamentMatch(self):
+    def doTournamentMatch(self, matchSuggestedName):
         global t_count, tournamentMatchPlayers, values, tournamentMatchPlayersLogins
 
-        tournament_match_name0 = "tournament" + str(t_count // 4) + "_0"
+        tournament_match_name0 = "tournament" + str(t_count // 4) + "_0" + matchSuggestedName
         async_to_sync(self.channel_layer.group_add)(
             tournament_match_name0, tournamentMatchPlayers[0]
         )
         async_to_sync(self.channel_layer.group_add)(
             tournament_match_name0, tournamentMatchPlayers[1]
         )
-        tournament_match_name1 = "tournament" + str(t_count // 4) + "_1"
+        tournament_match_name1 = "tournament" + str(t_count // 4) + "_1" + matchSuggestedName
         async_to_sync(self.channel_layer.group_add)(
             tournament_match_name1, tournamentMatchPlayers[2]
         )
@@ -163,15 +164,11 @@ class GameConsumer(WebsocketConsumer):
         matchPlayers[tournament_match_name0] = []
         matchPlayers[tournament_match_name1] = []
         print("TOURNAMENT MATCH PLAYERS: ", tournamentMatchPlayers)
-        #for player in tournamentMatchPlayers:
-        #    matches[tournament_match_name].append(player)
         matches[tournament_match_name0].append(tournamentMatchPlayers[0])
         matches[tournament_match_name0].append(tournamentMatchPlayers[1])
         matches[tournament_match_name1].append(tournamentMatchPlayers[2])
         matches[tournament_match_name1].append(tournamentMatchPlayers[3])
         print("MATCHES: ", matches)
-        #for login in tournamentMatchPlayersLogins:
-        #    matchPlayers[tournament_match_name].append(login)
         matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[0])
         matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[1])
         matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[2])
@@ -206,11 +203,11 @@ class GameConsumer(WebsocketConsumer):
         print("STARTED GAME THREAD", simpleMatchName, matches[simpleMatchName])
 
 
-    def newTournamentMatch(self):
+    def newTournamentMatch(self, matchSuggestedName):
         global tournamentMatchName0, tournamentMatchName1
 
         print("BEFORE NEW TOURNAMENT MATCH", tournamentMatchPlayers)
-        tournamentMatchName0, tournamentMatchName1 = self.doTournamentMatch()
+        tournamentMatchName0, tournamentMatchName1 = self.doTournamentMatch(matchSuggestedName)
         print("AFTER NEW TOURNAMENT MATCH: ", "0:", tournamentMatchName0, "1:", tournamentMatchName1)
 
         print("SEND MESSAGE TO EACH PLAYER")

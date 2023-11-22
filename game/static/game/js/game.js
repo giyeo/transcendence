@@ -32,7 +32,7 @@ var ball = {
 	y: 0,
 };
 
-import { matchType, updateMatchType, userData, runGame } from './app.js';
+import { matchType, matchSuggestedName, updateMatchType, userData, runGame } from './app.js';
 import { getAccessToken } from './util.js';
 
 function setBallmiddle() {
@@ -255,12 +255,6 @@ async function gameLoop() {
 	}
 }
 
-function fabs(x) {
-	if(x < 0)
-		return -x;
-	return x;
-}
-
 function startWebSockets() {
 	let url = `ws://${window.location.host}/ws/socket-server/`;
 	gameSocket = new WebSocket(url);
@@ -280,9 +274,9 @@ const API_URL = "http://127.0.0.1:8000"
 async function enterQueue() {
 	loadingScreen.style.display = 'block';
 	console.log("entering queue");
-	console.log("matchType: " + matchType, "gamemode: " + "default");
+	console.log("matchType: " + matchType, "gamemode: " + "default", "matchSuggestedName: " + matchSuggestedName);
 	return new Promise((resolve, reject) => {
-		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
+		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}&matchSuggestedName=${matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
 			.then(response => {
 				console.log(response)
 				resolve(response)
