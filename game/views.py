@@ -83,7 +83,11 @@ def userData(request):
             return JsonResponse({"detail": "No code provided"}, status=400)
         tokenData = getToken(code)
         intra_access_token = tokenData["access_token"]
-        data = getUserData(intra_access_token)
+        try:
+            data = getUserData(intra_access_token)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                return JsonResponse({"detail": "Invalid code"}, status=401)
         new_data = makeNewData(data)
         user, user_local = getUserModels(new_data.get("login"))
         if not user_local.twofa_enabled:
@@ -91,7 +95,11 @@ def userData(request):
         new_data["user_id"] = str(user.id)
         new_data["intra_access_token"] = str(intra_access_token)
     else:
-        data = getUserData(intra_access_token)
+        try:
+            data = getUserData(intra_access_token)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                return JsonResponse({"detail": "Invalid code"}, status=401)
         new_data = makeNewData(data)
         user, user_local = getUserModels(new_data.get("login"))
         if not user_local.twofa_enabled:

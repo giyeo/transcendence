@@ -66,6 +66,12 @@ async function runGame() {
 	window.location.hash = 'menu'
 }
 
+function logout() {
+	localStorage.removeItem("intra_access_token");
+	localStorage.removeItem("access_token");
+	localStorage.removeItem("access_token_expires_at");
+	window.location.reload();
+}
   
 function setupSinglePageApplication() {
 	window.location.hash = 'login';
@@ -146,10 +152,7 @@ function setupSinglePageApplication() {
 
 	var logoutButton = document.getElementById('logoutButton');
 	logoutButton.addEventListener('click', () => {
-		localStorage.removeItem("intra_access_token");
-		localStorage.removeItem("access_token");
-		localStorage.removeItem("access_token_expires_at");
-		window.location.reload();
+		logout();
 	});
 
 	var matchGivenNameElement = document.getElementById('matchGivenName');
@@ -193,4 +196,4 @@ function updateMatchType(newMatchType) {
 
 document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 
-export { userData, randomUserData, matchType, updateMatchType, runGame }
+export { userData, randomUserData, matchType, updateMatchType, runGame, logout }

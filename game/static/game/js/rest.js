@@ -1,4 +1,4 @@
-import {userData} from './app.js'
+import { userData, logout } from './app.js'
 
 var API_URL = "http://127.0.0.1:8000"
 
@@ -96,11 +96,17 @@ async function request(method, url, headers, blob) {
 	return new Promise((resolve, reject) => {
 		fetch(url, { method: method, headers: headers })
 			.then(response => {
-				if(response.ok){
-					if(blob)
+				if (response.status === 401) {
+					logout();
+				} else if (response.ok) {
+					if(blob) {
 						resolve(response.blob())
-					else //tem que ter esse else pq é async
+					}
+					else {
 						resolve(response.json());
+					}
+				} else {
+					console.log("Error:", response.status);
 				}
 			})
 			.catch(error => {
