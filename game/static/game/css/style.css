@@ -231,31 +231,31 @@ body {
 
 .countDown {
 	font-size: 80px;
-	color: white;
+	color: #3498db;
 	position: absolute;
 	z-index: 999;
 }
 
 #loadingScreen {
 	display: none;
-	position: fixed;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
 	background-color: var(--background-color);
 	z-index: 1000;
+	position: fixed; 
 	text-align: center;
 }
 
 #loadingScreen p {
-	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 	background-color: var(--input-bg-color);
 	padding: 10px;
 	z-index: 1000;
+	position: absolute;
 	border-radius: 5px;
 }
 
@@ -281,8 +281,6 @@ footer p {
 	font-size: 12px;
 	text-align: center;
 }
-
-/* align everything inside the button without flex */
 
 #login-intra img {
 	width: 20px;

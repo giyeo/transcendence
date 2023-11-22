@@ -147,8 +147,12 @@ async function handleGameState(data) {
 
 async function onCloseWebSocket() {
 	let element = document.getElementById('countDown');
-	element.setAttribute('style', 'display: block; left: 0px; top: 280px');
-	if (matchType === 'tournamentMatch') {
+	console.log("CLOSE matchType: ", matchType);
+	if (matchType === 'simpleMatch') {
+		element.innerHTML = `Game Over!\nWinner is ${currentWinner}`;
+		console.log("currentWinner simple: ", currentWinner);
+	}
+	else if (matchType === 'tournamentMatch') {
 		element.innerHTML = `Game Over!\nWinner of the first round is ${currentWinner}`;
 		console.log("currentWinner first round: ", currentWinner);
 	}
@@ -156,14 +160,17 @@ async function onCloseWebSocket() {
 		element.innerHTML = `Game Over!\nWinner of the tournament is ${currentWinner}`;
 		console.log("currentWinner tournament: ", currentWinner);
 	}
-	await sleep(1000);
-	element.setAttribute('style', 'display: block; left: 360px; top: 280px');
+	element.setAttribute('style', 'display: block;');
+	await sleep(120000);
 	container.innerHTML = '';
 	ballPositionHistory = [];
 	gameSocket = null;
 	scored = false;
+	scoreA = 0;
+	scoreB = 0;
 	setBallmiddle();
 	console.log('WebSocket closed');
+	element.innerHTML = "";
 	if (currentWinner == player) {	
 		if (matchType === 'tournamentMatch') {
 			updateMatchType("tournamentMatchFinal");
@@ -174,21 +181,21 @@ async function onCloseWebSocket() {
 }
 
 async function countDown() {
+	let countDownElement = document.getElementById('countDown');
+	let count = 3;
 	while(startCountDown == false) {
 		await sleep(100);
 	}
 	startCountDown = false;
-	let element = document.getElementById('countDown');
-	let count = 3;
 	while(count > 0) {
-		element.innerHTML = `${count}`;
+		countDownElement.innerHTML = `${count}`;
 		await sleep(1000);
 		count--;
 	}
-	element.innerHTML = `GO!`;
-	element.setAttribute('style', 'left: 290px; top: 280px');
+	countDownElement.innerHTML = "GO!";
 	await sleep(1000);
-	element.setAttribute('style', 'display: none');
+	countDownElement.setAttribute('style', 'display: none');
+	countDownElement.innerHTML = "";
 }
 
 class sendWebSocket {
@@ -430,27 +437,21 @@ function setupGame() {
 			top: 280 * multiplierHeight,
 			left: leftShift + 360 * multiplierWidth,
 			element: document.getElementById('countDown')
-		}
+		},
 	]
 	for (let elementPosition of elementPositions) {
-		
-		//console.log("elementPosition.element: ", elementPosition.element);
 		if (elementPosition.element.id == 'scoreA' || elementPosition.element.id == 'scoreB') {
-			console.log("elementPosition.fontsize: ", elementPosition.fontsize);
 			elementPosition.element.style.fontSize = `${elementPosition.fontsize}px`;
 		}
 		if (elementPosition.element.id == 'verticalWall') {
-			console.log("elementPosition.borderleft: ", elementPosition.borderleft);
 			elementPosition.element.style.borderLeft = `${elementPosition.borderleft}px dashed #f2f2f2`;
 		}
 		elementPosition.element.style.top = `${elementPosition.top}px`;
 		elementPosition.element.style.left = `${elementPosition.left}px`;
 		if (elementPosition.element.id !== 'countDown') {
-			console.log("INSIDE != COUNTDOWN > elementPosition.width: ", elementPosition.element.id);
 			elementPosition.element.style.height = `${elementPosition.height}px`;
 			elementPosition.element.style.width = `${elementPosition.width}px`;
 		}
-
 	}
 }
 
