@@ -21,13 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6vo^h26+(yy@p809%z-&+&-1)*n56uf(5q4fw6h&@f1yq@kp#l'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-6vo^h26+(yy@p809%z-&+&-1)*n56uf(5q4fw6h&@f1yq@kp#l")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "") != "False"
 
-ALLOWED_HOSTS = ["0.tcp.sa.ngrok.io:10113", "0.tcp.sa.ngrok.io", "34.95.142.132:8000", "34.95.142.132", "127.0.0.1", "localhost"]
-
+if os.environ.get("DJANGO_ALLOWED_HOSTS") is not None:
+    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
 # Application definition
 
@@ -63,7 +63,7 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': False,
 
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': "BasTHstXbpfG#JS#GTZvpsH$Bo3J&bjNRz7P&cf2m2",
+    'SIGNING_KEY': os.getenv('DJANGO_JWT_SECRET_KEY'),
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
@@ -128,16 +128,12 @@ WSGI_APPLICATION = 'mywebsite.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
 	'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydb',
-        'USER': 'myuser',
-        'PASSWORD': 'mypassword',
-        'HOST': '127.0.0.1',  # or your PostgreSQL server's IP address
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
         'PORT': '',  # Leave it empty to use the default PostgreSQL port (5432)
     }
 }

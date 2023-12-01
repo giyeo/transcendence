@@ -14,17 +14,25 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import AccessToken
 
 
-def game(request):
-    return render(request, 'game/index.html')
-
-
 INTRA_API_URL = "https://api.intra.42.fr"
 INTRA_API_URL_TOKEN = INTRA_API_URL + "/oauth/token"
 INTRA_API_URL_ME = INTRA_API_URL + "/v2/me"
-REDIRECT_URI = "http://127.0.0.1:8000/game"
-INTRA_API_ID = "u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d"
-INTRA_API_SECRET = "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"
-# INTRA_API_SECRET = os.getenv("intra_secret")
+INTRA_API_URL_AUTH = INTRA_API_URL + "/oauth/authorize"
+
+INTRA_REDIRECT_URI = os.environ.get('DJANGO_INTRA_REDIRECT_URI')
+INTRA_API_ID = os.environ.get('DJANGO_INTRA_API_ID')
+INTRA_API_SECRET = os.environ.get('DJANGO_INTRA_API_SECRET')
+INTRA_RESPONSE_TYPE = "code"
+
+API_URL = os.environ.get('DJANGO_API_URL')
+
+def game(request):
+    print("API_URL", API_URL)
+    print("INTRA_API_URL_AUTH", INTRA_API_URL_AUTH)
+    print("INTRA_API_ID", INTRA_API_ID)
+    print("INTRA_REDIRECT_URI", INTRA_REDIRECT_URI)
+    print("INTRA_RESPONSE_TYPE", INTRA_RESPONSE_TYPE)
+    return render(request, 'game/index.html', {"API_URL": API_URL, "INTRA_API_URL_AUTH": INTRA_API_URL_AUTH, "INTRA_API_ID": INTRA_API_ID, "INTRA_REDIRECT_URI": INTRA_REDIRECT_URI, "INTRA_RESPONSE_TYPE": INTRA_RESPONSE_TYPE})
 
 def getToken(code):
     data = {
@@ -32,7 +40,7 @@ def getToken(code):
         "client_id": INTRA_API_ID,
         "client_secret": INTRA_API_SECRET,
         "code": code,
-        "redirect_uri": REDIRECT_URI,
+        "redirect_uri": INTRA_REDIRECT_URI,
     }
     print("Trying to getting a new token")
     try:
