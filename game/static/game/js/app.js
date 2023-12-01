@@ -143,11 +143,9 @@ function setupSinglePageApplication() {
 			window.location.reload();
 		} else {
 			console.log("Not logged in. Redirecting...");
-			let INTRA_API_URL_AUTH = "https://api.intra.42.fr/oauth/authorize"
-			let INTRA_CLIENT_ID = "u-s4t2ud-d7f64afc7fb7dc2840609df8b5328f172dd434549cf932c6606762ecb4016c2d"
-			let INTRA_REDIRECT_URI = "http://127.0.0.1:8000/game"
-			let INTRA_RESPONSE_TYPE = "code"
-			window.location.href = INTRA_API_URL_AUTH + "?client_id=" + INTRA_CLIENT_ID + "&redirect_uri=" + INTRA_REDIRECT_URI + "&response_type=" + INTRA_RESPONSE_TYPE;
+			let url = INTRA_API_URL_AUTH + "?client_id=" + INTRA_CLIENT_ID + "&redirect_uri=" + INTRA_REDIRECT_URI + "&response_type=" + INTRA_RESPONSE_TYPE;
+			console.log("Redirecting to: " + url);
+			window.location.href = url;
 		}
 	});
 

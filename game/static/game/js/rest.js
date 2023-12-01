@@ -1,10 +1,11 @@
 import { userData, updateUserData, updateRandomUserData, logout } from './app.js'
 
-var API_URL = "http://127.0.0.1:8000"
+console.log("API_URL: " + API_URL)
 
 export async function getUserData(intraCode, intraAccessToken) {
 	try {
 		console.log("This is data before the request: " + data)
+		console.log("URL NOW:", API_URL + "/game/data" + "?code=" + intraCode + "&intra_access_token=" + intraAccessToken)
 		var data = await request("GET", API_URL + "/game/data" + "?code=" + intraCode + "&intra_access_token=" + intraAccessToken, {});
 		console.log("This is data after the request: " + data)
 		if (data.intra_access_token) {
@@ -79,6 +80,7 @@ export async function verifyLoginOTP(otp) {
 	}
 }
 
+
 async function request(method, url, headers, blob) {
 	console.log(method, url);
 
@@ -93,6 +95,8 @@ async function request(method, url, headers, blob) {
 		throw new Error("Method not available");
 	}
 
+	console.log("fucking url", url)
+
 	return new Promise((resolve, reject) => {
 		fetch(url, { method: method, headers: headers })
 			.then(response => {
@@ -106,10 +110,12 @@ async function request(method, url, headers, blob) {
 						resolve(response.json());
 					}
 				} else {
+					console.log("FUCKING URL2", url)
 					console.log("Error:", response.status);
 				}
 			})
 			.catch(error => {
+				console.log("FUCKING URL2", url)
 				console.error('There was a problem with the fetch operation:', error);
 				reject(error);
 			});
