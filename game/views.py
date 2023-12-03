@@ -25,9 +25,10 @@ INTRA_API_SECRET = os.environ.get('DJANGO_INTRA_API_SECRET')
 INTRA_RESPONSE_TYPE = "code"
 
 API_URL = os.environ.get('DJANGO_API_URL')
+WS_URL = os.environ.get('DJANGO_WS_URL')
 
 def game(request):
-    return render(request, 'game/index.html', {"API_URL": API_URL, "INTRA_API_URL_AUTH": INTRA_API_URL_AUTH, "INTRA_API_ID": INTRA_API_ID, "INTRA_REDIRECT_URI": INTRA_REDIRECT_URI, "INTRA_RESPONSE_TYPE": INTRA_RESPONSE_TYPE})
+    return render(request, 'game/index.html', {"API_URL": API_URL, "WS_URL": WS_URL, "INTRA_API_URL_AUTH": INTRA_API_URL_AUTH, "INTRA_API_ID": INTRA_API_ID, "INTRA_REDIRECT_URI": INTRA_REDIRECT_URI, "INTRA_RESPONSE_TYPE": INTRA_RESPONSE_TYPE})
 
 def getToken(code):
     data = {
