@@ -95,8 +95,6 @@ async function request(method, url, headers, blob) {
 		throw new Error("Method not available");
 	}
 
-	console.log("fucking url", url)
-
 	return new Promise((resolve, reject) => {
 		fetch(url, { method: method, headers: headers })
 			.then(response => {
@@ -110,12 +108,10 @@ async function request(method, url, headers, blob) {
 						resolve(response.json());
 					}
 				} else {
-					console.log("FUCKING URL2", url)
 					console.log("Error:", response.status);
 				}
 			})
 			.catch(error => {
-				console.log("FUCKING URL2", url)
 				console.error('There was a problem with the fetch operation:', error);
 				reject(error);
 			});

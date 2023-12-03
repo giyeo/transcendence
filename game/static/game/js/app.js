@@ -143,9 +143,7 @@ function setupSinglePageApplication() {
 			window.location.reload();
 		} else {
 			console.log("Not logged in. Redirecting...");
-			let url = INTRA_API_URL_AUTH + "?client_id=" + INTRA_CLIENT_ID + "&redirect_uri=" + INTRA_REDIRECT_URI + "&response_type=" + INTRA_RESPONSE_TYPE;
-			console.log("Redirecting to: " + url);
-			window.location.href = url;
+			window.location.href = INTRA_API_URL_AUTH + "?client_id=" + INTRA_CLIENT_ID + "&redirect_uri=" + INTRA_REDIRECT_URI + "&response_type=" + INTRA_RESPONSE_TYPE;;
 		}
 	});
 

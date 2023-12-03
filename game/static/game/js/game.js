@@ -276,8 +276,6 @@ function startEventListeners() {
 	document.addEventListener('resize', (e) => { e.preventDefault(); });
 }
 
-const API_URL = "http://127.0.0.1:8000"
-
 async function enterQueue() {
 	loadingScreen.style.display = 'block';
 	return new Promise((resolve, reject) => {
