@@ -202,7 +202,7 @@ body {
     height: 100px;
     background-color: var(--paddle-color);
     position: absolute;
-	z-index: 99;
+	/* z-index: 99; */
 }
 
 .horizontalWall {
@@ -225,7 +225,7 @@ body {
 	background-color: var(--input-text-color);
 	border-radius: 100%;
 	position: absolute;
-	z-index: 100;
+	/* z-index: 100; */
   }
 
 .score {
@@ -239,11 +239,9 @@ body {
 	position: absolute;
 }
 
-.countDown {
-	font-size: 80px;
+#countDown {
 	color: #3498db;
-	position: absolute;
-	z-index: 999;
+	font-size: 1rem;
 }
 
 #loadingScreen {
