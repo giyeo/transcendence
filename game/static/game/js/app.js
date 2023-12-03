@@ -24,15 +24,20 @@ function mountMenu() {
 }
 
 async function goToMenu(intraCode, intraAccessToken) {
+	console.log("Going to menu");
 	window.location.hash = 'loading'
 	try {
 		if(intraCode || intraAccessToken) {
+			console.log("Getting user data");
 			await REST.getUserData(intraCode, intraAccessToken);
+			console.log("Got user data");
 			if (userData) {
+				console.log("User data exists")
 				if (!UTIL.getAccessToken()) {
+					console.log("No access token, OTP required")
 					window.location.hash = 'login_otp'
-				}
-				else {
+				} else {
+					console.log("Access token exists, no OTP required, going to menu")
 					mountMenu();
 					window.location.hash = 'menu'
 				}
@@ -56,13 +61,15 @@ async function goToMenu(intraCode, intraAccessToken) {
 async function sendOTP(accessToken) {
 	let otpText = document.getElementById('2FAInputOTP');
 	let qrcodeImage = document.getElementById('2FAImageQRCode');
-	//let inputActivationOTP = document.getElementById('input-activation-OTP')
-	let a = await REST.verifyOTP(otpText.value, accessToken)
-	console.log(a)
-	if(a === 200) {
+	let status2FAElement = document.getElementById('2FAStatus');
+	let verified = await REST.verifyOTP(otpText.value, accessToken)
+	if (verified) {
 		otpText.value = ""
-		qrcodeImage.style.display = "none"
-		//inputActivationOTP.style.display = "none"
+		verified.twofa_enabled ? status2FAElement.innerHTML = "ACTIVATED" : status2FAElement.innerHTML = "DEACTIVATED";
+		qrcodeImage.src = "";
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -86,19 +93,14 @@ function logout() {
 function setupSinglePageApplication() {
 	window.location.hash = 'login';
 	let intraCode = UTIL.getIntraCode();
-	let intraAccessToken = UTIL.getIntraAccessToken();
-	let accessToken = UTIL.getAccessToken();
-	console.log("intraCode: " + intraCode)
-	console.log("intraAccessToken: " + intraAccessToken)
 	var selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
 	var matchSuggestedNameElement = document.getElementById('matchSuggestedName');
 	document.getElementById("languageSelectMenu").value = selectedLanguage;
 	document.getElementById("languageSelectLogin").value = selectedLanguage;
 	UTIL.removeQueryParam('code');
 
-	if (intraCode || intraAccessToken) {
-		console.log("intraCode or intraAccessToken defined, going to menu")
-		goToMenu(intraCode, intraAccessToken);
+	if (intraCode || UTIL.getIntraAccessToken()) {
+		goToMenu(intraCode, UTIL.getIntraAccessToken());
 	}
 
 	document.getElementById('find-match').addEventListener('click', () => {
@@ -113,8 +115,15 @@ function setupSinglePageApplication() {
 	});
 
 	var buttonSendOTP = document.getElementById('2FAButtonSendOTP')
-	buttonSendOTP.addEventListener('click', () => {
-		sendOTP(accessToken);
+	buttonSendOTP.addEventListener('click', async () => {
+		let element2FAMessage = document.getElementById('2FAMessage');
+		let verified = await sendOTP(UTIL.getAccessToken());
+		if (verified) {
+			element2FAMessage.innerText = "OTP verified. 2FA toggled.";
+		} else {
+			element2FAMessage.innerText = "Invalid OTP";
+		}
+		setTimeout(() => {element2FAMessage.innerText = "";}, 1500);
 	});
 
 	var matchTypeElement = document.getElementById('matchTypeElement');
@@ -128,17 +137,20 @@ function setupSinglePageApplication() {
 
 	});
 
-	document.getElementById('send-login-OTP').addEventListener('click', () => {
-		REST.verifyLoginOTP(document.getElementById('2fa-login-input').value);
-		if(UTIL.getAccessToken()) {
-			mountMenu();
-			window.location.hash = 'menu';
+	document.getElementById('send-login-OTP').addEventListener('click', async () => {
+		let accessToken = await REST.verifyLoginOTP(document.getElementById('2fa-login-input').value);
+		let otpMessageElement = document.getElementById('otp-login-message');
+		if (accessToken) {
+			otpMessageElement.innerText = "";
+			goToMenu();
+		} else {
+			otpMessageElement.innerText = "Invalid OTP";
+			setTimeout(() => {otpMessageElement.innerText = "";}, 1500);
 		}
 	});
 
 	document.getElementById('login-intra').addEventListener('click', () => {
-		let intraAccessToken = UTIL.getIntraAccessToken();
-		if (intraAccessToken) {
+		if (UTIL.getIntraAccessToken()) {
 			console.log("Already logged in");
 			window.location.reload();
 		} else {
@@ -162,7 +174,7 @@ function setupSinglePageApplication() {
 		if (["en", "pt", "fr"].includes(selectedLanguage)) {
 			localStorage.setItem("selectedLanguage", selectedLanguage);
 			updateLanguage(selectedLanguage);
-			REST.sendLanguage(accessToken, selectedLanguage);
+			REST.sendLanguage(UTIL.getAccessToken(), selectedLanguage);
 		}
 	});
 
@@ -199,7 +211,7 @@ function setupSinglePageApplication() {
 	var settingsButtonElement = document.getElementById('settingsButton');
 	settingsButtonElement.addEventListener('click', () => {
 		let languageElement = document.getElementById('language');
-		let _2FAElement = document.getElementById('2FA');
+		let _2FAElement = document.getElementById('_2FA');
 		if (languageElement.style.display === "block" && _2FAElement.style.display === "block") {
 			languageElement.style.display = "none";
 			_2FAElement.style.display = "none";

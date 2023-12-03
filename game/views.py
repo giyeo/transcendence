@@ -114,13 +114,23 @@ def userData(request):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
+def get2FAStatus(request):
+    try:
+        user_local = CustomUser.objects.get(id=request.user.id)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({}, status=403)
+    return JsonResponse({'twofa_enabled': user_local.twofa_enabled})
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
 def getQRCode(request):
     try:
         user_local = CustomUser.objects.get(id=request.user.id)
     except CustomUser.DoesNotExist:
         return JsonResponse({}, status=403)
     totp = pyotp.TOTP(user_local.auth_secret)
-    uri = totp.provisioning_uri("localhost:8000", issuer_name="transcendence")
+    uri = totp.provisioning_uri(name=user_local.login, issuer_name="transcendence")
     img = qrcode.make(uri)
     buffer = BytesIO()
     img.save(buffer)
@@ -136,25 +146,38 @@ def verifyOTP(request):
     except CustomUser.DoesNotExist:
         return JsonResponse({}, status=403)
     otp = request.GET.get('otp')
+    if not otp or not otp.isdigit() or len(otp) > 6:
+        return JsonResponse({}, status=403)
     totp = pyotp.TOTP(user_local.auth_secret)
-    if otp and totp.verify(otp):
-        user_local.twofa_enabled = True
-        user_local.save()
-        return JsonResponse({}, status=200)
-    return JsonResponse({}, status=403)
+    if totp.verify(otp):
+        if user_local.twofa_enabled:
+            user_local.twofa_enabled = False
+            user_local.auth_secret = pyotp.random_base32()
+            user_local.save()
+            return JsonResponse({"twofa_enabled": False}, status=200)
+        else:
+            user_local.twofa_enabled = True
+            user_local.save()
+            return JsonResponse({"twofa_enabled": True}, status=200)
+    else:
+        return JsonResponse({}, status=403)
 
 @api_view(['GET'])
 def verifyLoginOTP(request):
     otp = request.GET.get('otp')
+    if not otp or not otp.isdigit() or len(otp) > 6:
+        return JsonResponse({}, status=403)
     user_id = request.GET.get('userId')
+    if not user_id or not user_id.isdigit():
+        return JsonResponse({}, status=403)
     user = get_user_model().objects.get(id=user_id)
     user_local = CustomUser.objects.get(id=user_id)
-    if otp:
-        totp = pyotp.TOTP(user_local.auth_secret)
-        if totp.verify(otp):
-            data = {"access_token": str(AccessToken.for_user(user))}
-            return JsonResponse(data, status=200)
-    return JsonResponse({}, status=403)
+    totp = pyotp.TOTP(user_local.auth_secret)
+    if totp.verify(otp):
+        data = {"access_token": str(AccessToken.for_user(user))}
+        return JsonResponse(data, status=200)
+    else:
+        return JsonResponse({}, status=403)
 
 
 @api_view(['GET'])

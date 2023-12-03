@@ -10,6 +10,7 @@ sitemaps = {
 urlpatterns = [
 	path('', views.game, name='game'),
 	path('data', views.userData),
+	path('2FAStatus', views.get2FAStatus),
 	path('qrcode', views.getQRCode),
 	path('verifyOTP', views.verifyOTP),
 	path('verifyLoginOTP', views.verifyLoginOTP),

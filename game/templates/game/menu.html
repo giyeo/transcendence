@@ -36,12 +36,17 @@
 		</select>
 	</div>
 	<!-- 2FA -->
-	<div id="2FA" style="display: none;">
+	<div id="_2FA" style="display: none;">
 		<button id="2FAButtonToggle" class="translation">Toggle 2FA</button>
 		<div id="2FAImageInputAndButton" style="display: none;">
-			<img id="2FAImageQRCode" height="300" width="300"></img>
-			<input id="2FAInputOTP" type="text" placeholder="2FA code"></input>
-			<button id="2FAButtonSendOTP" class="translation">Send OTP</input>
+			<p id="instructions2FA1" class="translation">To toggle 2FA, scan the QR code below with your 2FA app and enter the OTP code.</p>
+			<p id="2FAStatus">DEACTIVATED</p>
+			<div>
+				<img id="2FAImageQRCode" height="300" width="300"></img>
+			</div>
+			<input id="2FAInputOTP" type="text" placeholder="OTP code"></input>
+			<button id="2FAButtonSendOTP" class="translation">Send OTP</button>
+			<p id="2FAMessage"></p>
 		</div>
 	</div>
 </div>

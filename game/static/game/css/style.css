@@ -129,6 +129,16 @@ body {
 
 #menu #settings {
 	margin: 10px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+#menu #settings p {
+	color: var(--input-text-color);
+	text-align: center;
+	margin: 10px;
 }
 
 #menu #logout {

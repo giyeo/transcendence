@@ -11,6 +11,8 @@ services:
       - ./nginx/conf/:/etc/nginx/conf.d/:ro
       - ./nginx/ssl/:/etc/nginx/ssl/:ro
       - ./nginx/www/:/var/www/:ro
+    depends_on:
+      - game
   game:
     build: .
     env_file:
@@ -21,6 +23,11 @@ services:
       - db
     volumes:
       - ./nginx/www/:/app/staticfiles/:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
   db:
     image: postgres:16.1-bullseye
     environment:

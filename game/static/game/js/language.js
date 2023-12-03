@@ -54,6 +54,16 @@ const translations = {
 		"pt": "Configurações",
 		"fr": "Paramètres",
 	},
+	"madeby": {
+		"en": "Made by The Boys { Caio, Eduardo, Luigi, Rafael }",
+		"pt": "Feito por The Boys { Caio, Eduardo, Luigi, Rafael }",
+		"fr": "Réalisé par The Boys { Caio, Eduardo, Luigi, Rafael }",
+	},
+	"instructions2FA1": {
+		"en": "To toggle 2FA, scan the QR code below with your 2FA app and enter the OTP code.",
+		"pt": "Para alternar 2FA, escaneie o código QR abaixo com seu aplicativo 2FA e insira o código OTP.",
+		"fr": "Pour basculer la 2FA, scannez le code QR ci-dessous avec votre application 2FA et entrez le code OTP.",
+	}
 };
 
 export function updateLanguage(selectedLanguage) {

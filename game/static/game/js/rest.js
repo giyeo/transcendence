@@ -41,22 +41,31 @@ export async function getQRCode(accessToken) {
 		return;
 	} else {
 		try {
-			var data = await request("GET", API_URL + '/game/qrcode', {'Authorization': 'Bearer ' + accessToken}, "blob");
+			var status2fa = await request("GET", API_URL + '/game/2FAStatus', {'Authorization': 'Bearer ' + accessToken});
+			let status2FAElement = document.getElementById('2FAStatus');
+			status2FAElement.innerHTML = status2fa.twofa_enabled ? "ACTIVATED" : "DEACTIVATED";
 		} catch (error) {
 			console.error('Error:', error);
 		}
-		imageQRCode2FA.src = URL.createObjectURL(data);
-		ImageInputAndButton2FA.style.display = "block";
+		try {
+			var data = await request("GET", API_URL + '/game/qrcode', {'Authorization': 'Bearer ' + accessToken}, "blob");
+			imageQRCode2FA.src = URL.createObjectURL(data);
+			ImageInputAndButton2FA.style.display = "block";
+		} catch (error) {
+			console.error('Error:', error);
+		}
 	}
 }
 
 export async function verifyOTP(otp, accessToken) {
+	console.log("VERIFYING OTP");
 	try {
-		await request("GET", API_URL + '/game/verifyOTP?&otp=' + otp, {'Authorization': 'Bearer ' + accessToken});
-		return 200;
+		var data = await request("GET", API_URL + '/game/verifyOTP?&otp=' + otp, {'Authorization': 'Bearer ' + accessToken});
+		console.log("OTP VERIFIED");
+		return data;
 	} catch (error) {
-		console.error('Error:', error);
-		return 500;
+		console.log("OTP NOT VERIFIED");
+		return false;
 	}
 }
 
@@ -74,15 +83,19 @@ export async function verifyLoginOTP(otp) {
 		if (data.access_token) {
 			localStorage.setItem("access_token", data.access_token)
 			localStorage.setItem("access_token_expires_at", data.access_token_expires_at)
+			return data.access_token;
+		} else {
+			return "";
 		}
 	} catch (error) {
+		console.log("THIS ERROR:", error);
 		console.error('Error:', error);
 	}
 }
 
 
 async function request(method, url, headers, blob) {
-	console.log(method, url);
+	console.log("DOING REQUEST", method, url);
 
 	if(url === "")
 		throw new Error("missing URL");
@@ -110,6 +123,7 @@ async function request(method, url, headers, blob) {
 				} else {
 					console.log("Error:", response.status);
 				}
+				reject(response.status);
 			})
 			.catch(error => {
 				console.error('There was a problem with the fetch operation:', error);

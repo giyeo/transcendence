@@ -38,7 +38,7 @@
 	<section id="game">		{% include './game.html' %}		</section>
 	<footer>
 		<div>
-			<p>Made by The Boys { Caio, Eduardo, Luigi, Rafael }</p>
+			<p id="madeby" class="translation">Made by The Boys { Caio, Eduardo, Luigi, Rafael }</p>
 		</div>
 	</footer>
 	<script>
@@ -48,6 +48,16 @@
 		const INTRA_CLIENT_ID = "{{ INTRA_API_ID }}"
 		const INTRA_REDIRECT_URI = "{{ INTRA_REDIRECT_URI }}"
 		const INTRA_RESPONSE_TYPE = "{{ INTRA_RESPONSE_TYPE }}"
+
+		function validateNumericInput(event) {
+			const input = event.target;
+			const value = input.value;
+			const numericValue = parseFloat(value);
+
+			if (isNaN(numericValue) || value.length > 6) {
+				input.value = '';
+			}
+		}
 	</script>
 </body>
 </html>
