@@ -32,6 +32,9 @@ var ball = {
 	y: 0,
 };
 
+var joystickUpButtonElement = document.getElementById('joystickUpButton');
+var joystickDownButtonElement = document.getElementById('joystickDownButton');
+
 import { matchType, matchSuggestedName, updateMatchType, userData, runGame, randomUserData } from './app.js';
 import { getAccessToken } from './util.js';
 
@@ -253,7 +256,7 @@ async function gameLoop() {
 		}
 		if(scored == true) {
 			scored = false;
-			removeEventListener('keydown', handleKeyDown);
+			//removeEventListener('keydown', handleKeyDown);
 			await sleep(1000);
 			ready = true;
 		}
@@ -264,15 +267,6 @@ async function gameLoop() {
 
 function startWebSockets() {
 	gameSocket = new WebSocket(WS_URL + "/ws/socket-server/");
-}
-
-function startEventListeners() {
-	gameSocket.addEventListener('open', onOpenWebSocket);
-	gameSocket.addEventListener('message', onMessageWebSocket);
-	gameSocket.addEventListener('close', onCloseWebSocket);
-	document.addEventListener('keydown', handleKeyDown);
-	document.addEventListener('keyup', handleKeyUp);
-	document.addEventListener('resize', (e) => { e.preventDefault(); });
 }
 
 async function enterQueue() {
@@ -322,51 +316,101 @@ export async function startGame() {
 }
 
 //____________________________INPUT_BEGIN____________________________
-let keyDownInterval = null;
-let isKeyDown = false; // Flag to track key press
-// Attach keydown and keyup event listeners to the document
+
+let keyUpPressedInterval = null;
+let keyDownPressedInterval = null;
+let isKeyUpPressed = false;
+let isKeyDownPressed = false;
 
 
-function stopContinuousMove() {
-	clearInterval(keyDownInterval);
-	isKeyDown = false; // Reset the flag
+function stopContinuousUpMove() {
+	clearInterval(keyUpPressedInterval);
+	isKeyUpPressed = false;
+}
+
+function stopContinuousDownMove() {
+	clearInterval(keyDownPressedInterval);
+	isKeyDownPressed = false;
 }
 
 function handleKeyUp(event) {
-	if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-		stopContinuousMove();
+	if (event.key === 'ArrowUp') {
+		stopContinuousUpMove();
+	} else if (event.key === 'ArrowDown') {
+		stopContinuousDownMove();
 	}
 }
 
-function startContinuousMove(direction) {
-	if (!isKeyDown) {
-		isKeyDown = true;
-		keyDownInterval = setInterval(() => {
-			if (direction === 'up') {
-				if(player == 'a' && paddleAy >= 30.0 * multiplierHeight)
-					paddleAy -= 10.0 * multiplierHeight; // Move rectangle 1 upward
-				if(player == 'b' && paddleBy >= 30.0 * multiplierHeight)
-					paddleBy -= 10.0 * multiplierHeight;
-			} else if (direction === 'down') {
-				if(player == 'a' && paddleAy < 520.0 * multiplierHeight)
-					paddleAy += 10.0 * multiplierHeight; // Move rectangle 2 downward
-				if(player == 'b' && paddleBy < 520.0 * multiplierHeight)
-					paddleBy += 10.0 * multiplierHeight;
-			}
-			
-			movePaddleClient();
-		}, 16); // Adjust the interval as needed for desired speed
-	}
-}
-
-// Handle keydown and keyup events
 function handleKeyDown(event) {
-	if(ready == false)
+	if (ready == false)
 		return;
 	if (event.key === 'ArrowUp') {
-		startContinuousMove('up');
+		startContinuousUpMove();
 	} else if (event.key === 'ArrowDown') {
-		startContinuousMove('down');
+		startContinuousDownMove();
+	}
+}
+
+function startJoystickEventListeners() {
+	joystickUpButtonElement.addEventListener('mousedown', () => {
+		handleKeyDown({key: 'ArrowUp'});
+	});
+	joystickUpButtonElement.addEventListener('mouseup', () => {
+		handleKeyUp({key: 'ArrowUp'});
+	});
+	joystickDownButtonElement.addEventListener('mousedown', () => {
+		handleKeyDown({key: 'ArrowDown'});
+	});
+	joystickDownButtonElement.addEventListener('mouseup', () => {
+		handleKeyUp({key: 'ArrowDown'});
+	});
+	joystickUpButtonElement.addEventListener('touchstart', () => {
+		handleKeyDown({key: 'ArrowUp'});
+	});
+	joystickUpButtonElement.addEventListener('touchend', () => {
+		handleKeyUp({key: 'ArrowUp'});
+	});
+	joystickDownButtonElement.addEventListener('touchstart', () => {
+		handleKeyDown({key: 'ArrowDown'});
+	});
+	joystickDownButtonElement.addEventListener('touchend', () => {
+		handleKeyUp({key: 'ArrowDown'});
+	});
+}
+
+function startEventListeners() {
+	gameSocket.addEventListener('open', onOpenWebSocket);
+	gameSocket.addEventListener('message', onMessageWebSocket);
+	gameSocket.addEventListener('close', onCloseWebSocket);
+	document.addEventListener('keydown', handleKeyDown);
+	document.addEventListener('keyup', handleKeyUp);
+	startJoystickEventListeners();
+	document.addEventListener('resize', (e) => { e.preventDefault(); });
+}
+
+function startContinuousUpMove() {
+	if (!isKeyUpPressed) {
+		isKeyUpPressed = true;
+		keyUpPressedInterval = setInterval(() => {
+			if(player == 'a' && paddleAy >= 30.0 * multiplierHeight)
+				paddleAy -= 10.0 * multiplierHeight;
+			if(player == 'b' && paddleBy >= 30.0 * multiplierHeight)
+				paddleBy -= 10.0 * multiplierHeight;
+			movePaddleClient();
+		}, 16);
+	}
+}
+
+function startContinuousDownMove() {
+	if (!isKeyDownPressed) {
+		isKeyDownPressed = true;
+		keyDownPressedInterval = setInterval(() => {
+			if(player == 'a' && paddleAy < 520.0 * multiplierHeight)
+				paddleAy += 10.0 * multiplierHeight;
+			if(player == 'b' && paddleBy < 520.0 * multiplierHeight)
+				paddleBy += 10.0 * multiplierHeight;
+			movePaddleClient();
+		}, 16);
 	}
 }
 
@@ -456,7 +500,6 @@ function calculateLargest4x3Size() {
 	const targetAspectRatio = 4 / 3;
 	const windowWidth = window.innerWidth - 120;
 	const windowHeight = window.innerHeight - 120;
-	console.log("WINDOWD WIDTH AND HEIGHT: ", windowWidth, windowHeight)
   
 	let width = windowWidth;
 	let height = windowHeight;
@@ -471,11 +514,8 @@ function calculateLargest4x3Size() {
 	height = Math.floor(height);
 
 	multiplierWidth = width / 800;
-	console.log("multiplierWidth: ", multiplierWidth)
 	multiplierHeight = height / 600;
-	console.log("multiplierHeight: ", multiplierHeight)
 
-	console.log(`Largest 4:3 compatible size: ${width} x ${height}`);
 	leftShift = 200 * multiplierWidth;
 	paddleSizeA = 100 * multiplierHeight;
 	paddleSizeB = 100 * multiplierHeight;
@@ -484,10 +524,11 @@ function calculateLargest4x3Size() {
 }
 
 function movePaddleClient() {
-	if(player == 'a')
+	if (player == 'a') {
 		document.getElementById('paddleA').style.top = `${paddleAy}px`;
-	if(player == 'b')
+	} else if (player == 'b') {
 		document.getElementById('paddleB').style.top = `${paddleBy}px`;
+	}
 }
 
 async function drawGame(ballX, ballY) {
