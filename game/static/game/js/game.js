@@ -161,7 +161,7 @@ async function onCloseWebSocket() {
 		console.log("currentWinner tournament: ", currentWinner);
 	}
 	element.setAttribute('style', 'display: block;');
-	await sleep(120000);
+	await sleep(5000);
 	container.innerHTML = '';
 	ballPositionHistory = [];
 	gameSocket = null;
@@ -263,8 +263,7 @@ async function gameLoop() {
 }
 
 function startWebSockets() {
-	let url = `ws://${window.location.host}/ws/socket-server/`;
-	gameSocket = new WebSocket(url);
+	gameSocket = new WebSocket(WS_URL + "/ws/socket-server/");
 }
 
 function startEventListeners() {
