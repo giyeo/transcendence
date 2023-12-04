@@ -58,6 +58,15 @@
 				input.value = '';
 			}
 		}
+
+		function validateTournamentNameInput(event) {
+			const input = event.target;
+			const value = input.value;
+
+			if (value.length > 32) {
+				input.value = '';
+			}
+		}
 	</script>
 </body>
 </html>

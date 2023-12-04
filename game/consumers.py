@@ -161,6 +161,7 @@ class GameConsumer(WebsocketConsumer):
     def doTournamentMatch(self, matchSuggestedName):
         global t_count, tournamentMatchPlayers, values, tournamentMatchPlayersLogins
 
+        print("MATCH SUGGESTED NAME: ", matchSuggestedName)
         tournament_match_name0 = "tournament" + str(t_count // 4) + "_0" + matchSuggestedName
         async_to_sync(self.channel_layer.group_add)(
             tournament_match_name0, tournamentMatchPlayers[0]
@@ -212,7 +213,7 @@ class GameConsumer(WebsocketConsumer):
                 else:
                     player = 'b'
                 print("SEND MESSAGE TO: SIMPLE MATCH PLAYER: ", simple_match_player, "PLAYER:", player)
-                async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchNameDefaultGameModeName, "gamemode": gamemode})
+                async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchNameDefaultGameModeName})
             print("START GAME THREAD")
             time.sleep(1)
             thread = threading.Thread(target=self.gameLoop, args=(simpleMatchNameDefaultGameModeName,))
@@ -234,7 +235,7 @@ class GameConsumer(WebsocketConsumer):
                 else:
                     player = 'b'
                 print("SEND MESSAGE TO: SIMPLE MATCH PLAYER: ", simple_match_player, "PLAYER:", player)
-                async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchNameCrazyGameModeName, "gamemode": gamemode})
+                async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchNameCrazyGameModeName})
             print("START GAME THREAD")
             time.sleep(1)
             thread = threading.Thread(target=self.gameLoop, args=(simpleMatchNameCrazyGameModeName,))
@@ -264,7 +265,7 @@ class GameConsumer(WebsocketConsumer):
             elif (i == 2):
                 player = 'a'
                 match_name = tournamentMatchName1
-            else:
+            elif (i == 3):
                 player = 'b'
                 match_name = tournamentMatchName1
             print("SEND MESSAGE TO: TOURNAMENT MATCH PLAYER: ", tournament_match_player, "PLAYER:", player, "MATCH:", match_name)
@@ -305,17 +306,22 @@ class GameConsumer(WebsocketConsumer):
 
 
     def gameLoop(self, match_name):
+        print("GAME LOOP JUST STARTED")
         async_to_sync(self.channel_layer.group_send)(match_name,
             {
                 "type":"send_game_data",
                 "countDown": True 
             })
+        print("GAME LOOP MATCH NAME: ", match_name)
         gamemode = 'defaultGameMode'
         if match_name.startswith("matchdefault"):
             match.setupGameLoop(match_name, gamemode)
         elif match_name.startswith("matchcrazy"):
             gamemode = 'crazyGameMode'
             match.setupGameLoop(match_name, gamemode)
+        elif match_name.startswith("tournament"):
+            match.setupGameLoop(match_name, gamemode)
+        print("STARTING gameLoop MATCH NAME: ", match_name)
         time.sleep(4)
         while True:
             game_data = match.gameloop(match_name, gamemode, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
@@ -368,7 +374,6 @@ class GameConsumer(WebsocketConsumer):
             "type":"handshake",
             "player": event["player"],
             "match": event["match"],
-            "gamemode": event["gamemode"]
         }))
 
 recv = 0
