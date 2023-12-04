@@ -209,31 +209,63 @@ def updateLanguage(request):
 @permission_classes((IsAuthenticated,))
 def enterQueue(request):
     matchType = request.GET.get('matchType')
+    if matchType:
+        if (matchType != "simpleMatch" and matchType != "tournamentMatch" and matchType != "tournamentMatchFinal"):
+            return JsonResponse({}, status=400)
+    else:
+        matchType = "simpleMatch"
     gamemode = request.GET.get('gamemode')
+    if gamemode:
+        if (gamemode != "defaultGameMode" and gamemode != "crazyGameMode"):
+            return JsonResponse({}, status=400)
+    else:
+        gamemode = "defaultGameMode"
+
+    # simpleMatch + defaultGameMode <--
+    # simpleMatch + crazyGameMode <--
+    # tournamentMatch + defaultGameMode <--
+    # tournamentMatch + crazyGameMode <-- forbidden
+
+    if (matchType == "tournamentMatch" and gamemode == "crazyGameMode"):
+        return JsonResponse({}, status=400)
+
     matchSuggestedName = request.GET.get('matchSuggestedName')
+    if matchSuggestedName:
+        if (len(matchSuggestedName) > 32):
+            matchSuggestedName = matchSuggestedName[:32]
+        else:
+            matchSuggestedName = ""
     print(request.user.id, matchType, gamemode, matchSuggestedName)
-    queue = Queue.objects.create(user_id=request.user.id,
-                                 login=request.user.username,
-                                 match_type=matchType,
-                                 gamemode=gamemode,
-                                 match_suggested_name=matchSuggestedName)
-    queue.save()
-    #login, matchType, gamemode
+    try:
+        queue = Queue.objects.create(user_id=request.user.id,
+                                    login=request.user.username,
+                                    match_type=matchType,
+                                    gamemode=gamemode,
+                                    match_suggested_name=matchSuggestedName)
+        queue.save()
+    except Exception as e:
+        return JsonResponse({}, status=400)
     return JsonResponse({}, status=200)
 
 
 @api_view (['GET'])
 def enterQueueRandom(request):
     username = request.GET.get('username')
-    matchType = "simpleMatch"
-    gamemode = "default"
-    matchSuggestedName = ""
-    if not username:
+    if username:
+        if (len(username) > 32):
+            return JsonResponse({}, status=400)
+    else:
         return JsonResponse({}, status=400)
-    queue = Queue.objects.create(user_id=42,
-                                 login=username,
-                                 match_type=matchType,
-                                 gamemode=gamemode,
-                                 match_suggested_name=matchSuggestedName)
-    queue.save()
+    matchType = "simpleMatch"
+    gamemode = "defaultGameMode"
+    matchSuggestedName = ""
+    try:
+        queue = Queue.objects.create(user_id=42,
+                                    login=username,
+                                    match_type=matchType,
+                                    gamemode=gamemode,
+                                    match_suggested_name=matchSuggestedName)
+        queue.save()
+    except Exception as e:
+        return JsonResponse({}, status=400)
     return JsonResponse({}, status=200)

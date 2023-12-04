@@ -16,13 +16,18 @@ queue = []
 matches = {}
 matchPlayers = {}
 
-simpleMatchName = None
-simpleMatchPlayers = [] # max 2 players
-simpleMatchPlayersLogins = [] # max 2 players logins
 tournamentMatchName0 = None
 tournamentMatchName1 = None
 tournamentMatchPlayers = [] # max 4 players
 tournamentMatchPlayersLogins = [] # max 4 players logins
+
+simpleMatchNameDefaultGameModeName = None
+simpleMatchPlayersDefaultGameMode = [] # max 2 players
+simpleMatchPlayersLoginsDefaultGameMode = [] # max 2 players logins
+
+simpleMatchNameCrazyGameModeName = None
+simpleMatchPlayersCrazyGameMode = [] # max 2 players
+simpleMatchPlayersLoginsCrazyGameMode = [] # max 2 players logins
 
 
 tournaments = {}
@@ -36,27 +41,15 @@ class GameConsumer(WebsocketConsumer):
         matchType = Queue.objects.last().match_type
         gamemode = Queue.objects.last().gamemode
         matchSuggestedName = Queue.objects.last().match_suggested_name
-        print("MATCH TYPE: ", matchType)
-        print("GAMEMODE: ", gamemode)
         self.accept()
         print("DEFINING MATCH TYPE")
         if matchType == 'simpleMatch':
-            print("CONNECTION ACCEPETED, 1v1 MATCH")
-            player = self.simpleMatch(login)
-            print("PLAYER: ", player)
-            print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME:", simpleMatchName, "PLAYER:", player, "COUNT:", count)
+            player = self.simpleMatch(login, gamemode)
         elif matchType == 'tournamentMatch':
-            print("CONNECTION ACCEPETED, TOURNAMENT MATCH")
-            player = self.tournamentMatch(login, matchSuggestedName) 
-            print("PLAYER: ", player)
-            print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME 0:", tournamentMatchName0, "MATCH NAME 1:", tournamentMatchName1, "PLAYER:", player, "T_COUNT:", t_count)
+            player = self.tournamentMatch(login, matchSuggestedName)
         elif matchType == 'tournamentMatchFinal':
-            print("CONNECTION ACCEPETED, TOURNAMENT MATCH FINAL")
-            player = self.simpleMatch(login) 
-            print("PLAYER: ", player)
-            print("CONNECTED, CHANNEL:", self.channel_name, "MATCH NAME:", simpleMatchName, "PLAYER:", player, "COUNT:", count)
+            player = self.simpleMatch(login, "defaultGameMode") 
         else:
-            print("MATCH TYPE NOT FOUND, SO CONNECTION CLOSE")
             self.close()
 
 
@@ -94,13 +87,19 @@ class GameConsumer(WebsocketConsumer):
             return 'b'
 
 
-    def simpleMatch(self, login):
-        global count, simpleMatchPlayers, simpleMatchPlayersLogins
+    def simpleMatch(self, login, gamemode):
+        global count, simpleMatchPlayersDefaultGameMode, simpleMatchPlayersLoginsDefaultGameMode, simpleMatchPlayersCrazyGameMode, simpleMatchPlayersLoginsCrazyGameMode
 
-        simpleMatchPlayers.append(self.channel_name)
-        print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayers)
-        simpleMatchPlayersLogins.append(login)
-        print("SIMPLE MATCH PLAYERS LOGINS: ", simpleMatchPlayersLogins)  
+        if gamemode == 'defaultGameMode' or gamemode != 'crazyGameMode':
+            simpleMatchPlayersDefaultGameMode.append(self.channel_name)
+            print("SIMPLE MATCH PLAYERS DEFAULT GAME MODE: ", simpleMatchPlayersDefaultGameMode)
+            simpleMatchPlayersLoginsDefaultGameMode.append(login)
+            print("SIMPLE MATCH PLAYERS LOGINS DEFAULT GAME MODE: ", simpleMatchPlayersLoginsDefaultGameMode)
+        elif gamemode == 'crazyGameMode':
+            simpleMatchPlayersCrazyGameMode.append(self.channel_name)
+            print("SIMPLE MATCH PLAYERS CRAZY GAME MODE: ", simpleMatchPlayersCrazyGameMode)
+            simpleMatchPlayersLoginsCrazyGameMode.append(login)
+            print("SIMPLE MATCH PLAYERS LOGINS CRAZY GAME MODE: ", simpleMatchPlayersLoginsCrazyGameMode)
         if count % 2 == 0:
             count += 1
             print("PLAYER A")
@@ -108,33 +107,55 @@ class GameConsumer(WebsocketConsumer):
         else:
             count += 1
             print("PLAYER B")
-            self.newMatch()
+            self.newMatch(gamemode)
             return 'b'
 
 
-    def doMatch(self):
-        global count, simpleMatchPlayers, values, simpleMatchPlayersLogins
+    def doMatch(self, gamemode):
+        global count, values, simpleMatchPlayersDefaultGameMode, simpleMatchPlayersLoginsDefaultGameMode, simpleMatchPlayersCrazyGameMode, simpleMatchPlayersLoginsCrazyGameMode
 
-        match_name = "match" + str(count // 2)
-        async_to_sync(self.channel_layer.group_add)(
-            match_name, simpleMatchPlayers[0]
-        )
-        async_to_sync(self.channel_layer.group_add)(
-            match_name, simpleMatchPlayers[1]
-        )
+        if gamemode == 'defaultGameMode' or gamemode != 'crazyGameMode':
+            match_name = "matchdefault" + str(count // 2)
+            async_to_sync(self.channel_layer.group_add)(
+                match_name, simpleMatchPlayersDefaultGameMode[0]
+            )
+            async_to_sync(self.channel_layer.group_add)(
+                match_name, simpleMatchPlayersDefaultGameMode[1]
+            )
 
-        values[match_name] = {"aY": 270, "bY": 270}
-        print("VALUES: ", values)
-        matches[match_name] = []
-        matchPlayers[match_name] = []
-        print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayers)
-        for player in simpleMatchPlayers:
-            matches[match_name].append(player)
-        print("MATCHES: ", matches)
-        for login in simpleMatchPlayersLogins:
-            matchPlayers[match_name].append(login)
-        print("MATCH PLAYERS: ", matchPlayers)
-        return match_name
+            values[match_name] = {"aY": 270, "bY": 270}
+            print("VALUES: ", values)
+            matches[match_name] = []
+            matchPlayers[match_name] = []
+            print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayersDefaultGameMode)
+            for player in simpleMatchPlayersDefaultGameMode:
+                matches[match_name].append(player)
+            print("MATCHES: ", matches)
+            for login in simpleMatchPlayersLoginsDefaultGameMode:
+                matchPlayers[match_name].append(login)
+            print("MATCH PLAYERS: ", matchPlayers)
+            return match_name
+        elif gamemode == 'crazyGameMode':
+            match_name = "matchcrazy" + str(count // 2)
+            async_to_sync(self.channel_layer.group_add)(
+                match_name, simpleMatchPlayersCrazyGameMode[0]
+            )
+            async_to_sync(self.channel_layer.group_add)(
+                match_name, simpleMatchPlayersCrazyGameMode[1]
+            )
+
+            values[match_name] = {"aY": 270, "bY": 270}
+            print("VALUES: ", values)
+            matches[match_name] = []
+            matchPlayers[match_name] = []
+            print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayersCrazyGameMode)
+            for player in simpleMatchPlayersCrazyGameMode:
+                matches[match_name].append(player)
+            print("MATCHES: ", matches)
+            for login in simpleMatchPlayersLoginsCrazyGameMode:
+                matchPlayers[match_name].append(login)
+            print("MATCH PLAYERS: ", matchPlayers)
+            return match_name
 
 
     def doTournamentMatch(self, matchSuggestedName):
@@ -176,30 +197,53 @@ class GameConsumer(WebsocketConsumer):
         return tournament_match_name0, tournament_match_name1
         
 
-    def newMatch(self):
-        global simpleMatchName
+    def newMatch(self, gamemode):
+        global simpleMatchNameDefaultGameModeName, simpleMatchNameCrazyGameModeName
 
-        print("BEFORE NEW MATCH", simpleMatchPlayers)
-        simpleMatchName = self.doMatch()
-        print("AFTER NEW MATCH: ", simpleMatchName)
+        if gamemode == 'defaultGameMode' or gamemode != 'crazyGameMode':
+            print("BEFORE NEW MATCH", simpleMatchPlayersDefaultGameMode)
+            simpleMatchNameDefaultGameModeName = self.doMatch(gamemode)
+            print("AFTER NEW MATCH: ", simpleMatchNameDefaultGameModeName)
 
-        print("SEND MESSAGE TO EACH PLAYER")
-        for i, simple_match_player in enumerate(simpleMatchPlayers):
-            if (i == 0):
-                player = 'a'
-            else:
-                player = 'b'
-            print("SEND MESSAGE TO: SIMPLE MATCH PLAYER: ", simple_match_player, "PLAYER:", player)
-            async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchName})
-        print("START GAME THREAD")
-        time.sleep(1)
-        thread = threading.Thread(target=self.gameLoop, args=(simpleMatchName,))
-        thread.daemon = True  # This allows the thread to exit when the main program exits
-        thread.start()
-        print("CLEAR SIMPLE MATCH PLAYERS")
-        simpleMatchPlayers.clear()
-        simpleMatchPlayersLogins.clear()
-        print("STARTED GAME THREAD", simpleMatchName, matches[simpleMatchName])
+            print("SEND MESSAGE TO EACH PLAYER")
+            for i, simple_match_player in enumerate(simpleMatchPlayersDefaultGameMode):
+                if (i == 0):
+                    player = 'a'
+                else:
+                    player = 'b'
+                print("SEND MESSAGE TO: SIMPLE MATCH PLAYER: ", simple_match_player, "PLAYER:", player)
+                async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchNameDefaultGameModeName, "gamemode": gamemode})
+            print("START GAME THREAD")
+            time.sleep(1)
+            thread = threading.Thread(target=self.gameLoop, args=(simpleMatchNameDefaultGameModeName,))
+            thread.daemon = True  # This allows the thread to exit when the main program exits
+            thread.start()
+            print("CLEAR SIMPLE MATCH PLAYERS")
+            simpleMatchPlayersDefaultGameMode.clear()
+            simpleMatchPlayersLoginsDefaultGameMode.clear()
+            print("STARTED GAME THREAD", simpleMatchNameDefaultGameModeName, matches[simpleMatchNameDefaultGameModeName])
+        elif gamemode == 'crazyGameMode':
+            print("BEFORE NEW MATCH", simpleMatchPlayersCrazyGameMode)
+            simpleMatchNameCrazyGameModeName = self.doMatch(gamemode)
+            print("AFTER NEW MATCH: ", simpleMatchNameCrazyGameModeName)
+
+            print("SEND MESSAGE TO EACH PLAYER")
+            for i, simple_match_player in enumerate(simpleMatchPlayersCrazyGameMode):
+                if (i == 0):
+                    player = 'a'
+                else:
+                    player = 'b'
+                print("SEND MESSAGE TO: SIMPLE MATCH PLAYER: ", simple_match_player, "PLAYER:", player)
+                async_to_sync(self.channel_layer.send)(simple_match_player, {"type":"handshake", "player": player, "match": simpleMatchNameCrazyGameModeName, "gamemode": gamemode})
+            print("START GAME THREAD")
+            time.sleep(1)
+            thread = threading.Thread(target=self.gameLoop, args=(simpleMatchNameCrazyGameModeName,))
+            thread.daemon = True  # This allows the thread to exit when the main program exits
+            thread.start()
+            print("CLEAR SIMPLE MATCH PLAYERS")
+            simpleMatchPlayersCrazyGameMode.clear()
+            simpleMatchPlayersLoginsCrazyGameMode.clear()
+            print("STARTED GAME THREAD", simpleMatchNameCrazyGameModeName, matches[simpleMatchNameCrazyGameModeName])
 
 
     def newTournamentMatch(self, matchSuggestedName):
@@ -266,17 +310,21 @@ class GameConsumer(WebsocketConsumer):
                 "type":"send_game_data",
                 "countDown": True 
             })
-        # match.setupGameLoop(match_name, 'default')
-        match.setupGameLoop(match_name, 'crazyPaddleSizes')
+        gamemode = 'defaultGameMode'
+        if match_name.startswith("matchdefault"):
+            match.setupGameLoop(match_name, gamemode)
+        elif match_name.startswith("matchcrazy"):
+            gamemode = 'crazyGameMode'
+            match.setupGameLoop(match_name, gamemode)
         time.sleep(4)
         while True:
-            game_data = match.gameloop(match_name, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
+            game_data = match.gameloop(match_name, gamemode, {'aY': values[match_name]['aY'], 'bY': values[match_name]['bY']})
             async_to_sync(self.channel_layer.group_send)(match_name,
                 {
                     "type":"send_game_data",
                     "data": game_data
                 })
-            if(game_data.get('scoreA') > 3 or game_data.get('scoreB') > 3):
+            if(game_data.get('scoreA') > 20 or game_data.get('scoreB') > 20):
                 return #kill the thread
             if(len(matches[match_name]) < 2):
                 async_to_sync(self.channel_layer.group_send)(match_name,
@@ -319,7 +367,8 @@ class GameConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             "type":"handshake",
             "player": event["player"],
-            "match": event["match"]
+            "match": event["match"],
+            "gamemode": event["gamemode"]
         }))
 
 recv = 0

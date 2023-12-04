@@ -35,7 +35,7 @@ var ball = {
 var joystickUpButtonElement = document.getElementById('joystickUpButton');
 var joystickDownButtonElement = document.getElementById('joystickDownButton');
 
-import { matchType, matchSuggestedName, updateMatchType, userData, runGame, randomUserData } from './app.js';
+import { matchType, gameMode, matchSuggestedName, updateMatchType, userData, runGame, randomUserData } from './app.js';
 import { getAccessToken } from './util.js';
 
 function setBallmiddle() {
@@ -109,6 +109,7 @@ async function onMessageWebSocket(e) {
 	if (data.type === 'handshake') {
 		player = data.player;
 		matchName = data.match;
+		console.log("GAME MODE FROM BACKEND IS: ", data.gamemode);
 	}
 	if (data.type === 'gameState') {
 		received++;
@@ -130,7 +131,7 @@ async function handleGameState(data) {
 	scoreB = data.scoreB;
 	if(data.sound != "none")
 		playAudio(data.sound);
-	if(scoreA > 3 || scoreB > 3) {
+	if(scoreA > 20 || scoreB > 20) {
 		if(scoreA > scoreB)
 			currentWinner = 'a';
 		else
@@ -139,8 +140,8 @@ async function handleGameState(data) {
 		scoreB = 0;
 		gameSocket.close();
 	} else {
-		paddleSizeA = data.paddleSize * multiplierHeight;
-		paddleSizeB = data.paddleSize * multiplierHeight;
+		paddleSizeA = data.paddleSizeA * multiplierHeight;
+		paddleSizeB = data.paddleSizeB * multiplierHeight;
 		oldBall.x = ball.x;
 		oldBall.y = ball.y;
 		ball.x = (data.ballX * multiplierWidth) + leftShift;
@@ -164,7 +165,7 @@ async function onCloseWebSocket() {
 		console.log("currentWinner tournament: ", currentWinner);
 	}
 	element.setAttribute('style', 'display: block;');
-	await sleep(5000);
+	await sleep(1000);
 	container.innerHTML = '';
 	ballPositionHistory = [];
 	gameSocket = null;
@@ -272,7 +273,8 @@ function startWebSockets() {
 async function enterQueue() {
 	loadingScreen.style.display = 'block';
 	return new Promise((resolve, reject) => {
-		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${"default"}&matchSuggestedName=${matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
+		console.log("matchType: ", matchType, "gameMode: ", gameMode, "matchSuggestedName: ", matchSuggestedName);
+		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${gameMode}&matchSuggestedName=${matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
 			.then(response => {
 				console.log(response)
 				resolve(response)
@@ -388,26 +390,31 @@ function startEventListeners() {
 	document.addEventListener('resize', (e) => { e.preventDefault(); });
 }
 
+var horizontalWallLeftElement = document.getElementById('horizontalWallLeft');
+
+
 function startContinuousUpMove() {
 	if (!isKeyUpPressed) {
 		isKeyUpPressed = true;
 		keyUpPressedInterval = setInterval(() => {
-			if(player == 'a' && paddleAy >= 30.0 * multiplierHeight)
+			if(player == 'a' && paddleAy >= parseFloat(horizontalWallLeftElement.style.top) + parseFloat(horizontalWallLeftElement.style.height))
 				paddleAy -= 10.0 * multiplierHeight;
-			if(player == 'b' && paddleBy >= 30.0 * multiplierHeight)
+			if(player == 'b' && paddleBy >= parseFloat(horizontalWallLeftElement.style.top) + parseFloat(horizontalWallLeftElement.style.height))
 				paddleBy -= 10.0 * multiplierHeight;
 			movePaddleClient();
 		}, 16);
 	}
 }
 
+var horizontalWallRightElement = document.getElementById('horizontalWallRight');
+
 function startContinuousDownMove() {
 	if (!isKeyDownPressed) {
 		isKeyDownPressed = true;
 		keyDownPressedInterval = setInterval(() => {
-			if(player == 'a' && paddleAy < 520.0 * multiplierHeight)
+			if (player == 'a' && paddleAy < parseFloat(horizontalWallRightElement.style.top) - paddleSizeA)
 				paddleAy += 10.0 * multiplierHeight;
-			if(player == 'b' && paddleBy < 520.0 * multiplierHeight)
+			if (player == 'b' && paddleBy < parseFloat(horizontalWallRightElement.style.top) - paddleSizeB)
 				paddleBy += 10.0 * multiplierHeight;
 			movePaddleClient();
 		}, 16);

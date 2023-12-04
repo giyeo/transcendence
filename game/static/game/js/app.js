@@ -1,6 +1,7 @@
 var userData;
 var randomUserData;
 var matchType = "simpleMatch";
+var gameMode = "defaultGameMode";
 var matchSuggestedName = "";
 
 import {updateLanguage} from './language.js';
@@ -194,18 +195,71 @@ function setupSinglePageApplication() {
 			console.log("Simple");
 			matchType = "simpleMatch";
 			selectTournamentNameElement.style.display = "none";
+			if (gameModeElement.length === 1) {
+				var option = document.createElement("option");
+				option.text = "Crazy";
+				option.value = "crazyGameMode";
+				gameModeElement.add(option);
+			}
 		}
 		else if (matchTypeElement.value === "tournamentMatch") {
 			console.log("Tournament");
 			matchType = "tournamentMatch";
 			selectTournamentNameElement.style.display = "block";
+			if (gameModeElement.value != "defaultGameMode" || gameMode != "defaultGameMode") {
+				gameModeElement.value = "defaultGameMode";
+				gameMode = "defaultGameMode";
+			}
+			gameModeElement.remove(1);
 		}
 		else {
 			console.log("Simple anyway");
 			matchType = "simpleMatch";
 			selectTournamentNameElement.style.display = "none";
+			if (gameModeElement.length === 1) {
+				var option = document.createElement("option");
+				option.text = "Crazy";
+				option.value = "crazyGameMode";
+				gameModeElement.add(option);
+			}
 		}
 		matchSuggestedNameElement.value = "";
+		console.log("MATCH TYPE: ", matchType);
+		console.log("GAME MODE: ", gameMode);
+	});
+
+	var gameModeElement = document.getElementById('gameModeElement');
+
+	gameModeElement.value = "defaultGameMode";
+	gameModeElement.addEventListener('change', () => {
+		if (gameModeElement.value === "defaultGameMode") {
+			gameMode = "defaultGameMode";
+			if (matchTypeElement.length === 1) {
+				var option = document.createElement("option");
+				option.text = "Tournament Match";
+				option.value = "tournamentMatch";
+				matchTypeElement.add(option);
+			}
+		} else if (gameModeElement.value === "crazyGameMode") {
+			gameMode = "crazyGameMode";
+			if (matchTypeElement.value != "simpleMatch" || matchType != "simpleMatch") {
+				matchTypeElement.value = "simpleMatch";
+				matchType = "simpleMatch";
+				selectTournamentNameElement.style.display = "none";
+				selectTournamentNameElement.value = "";
+			}
+			matchTypeElement.remove(1);
+		} else {
+			gameModeElement.value = "defaultGameMode";
+			if (matchTypeElement.length === 1) {
+				var option = document.createElement("option");
+				option.text = "Tournament Match";
+				option.value = "tournamentMatch";
+				matchTypeElement.add(option);
+			}
+		}
+		console.log("GAME MODE: ", gameMode);
+		console.log("MATCH TYPE: ", matchType);
 	});
 
 	var settingsButtonElement = document.getElementById('settingsButton');
@@ -236,4 +290,4 @@ function updateRandomUserData(newRandomUserData) {
 
 document.addEventListener('DOMContentLoaded', setupSinglePageApplication);
 
-export { userData, updateUserData, randomUserData, matchType, updateMatchType, runGame, logout, matchSuggestedName, updateRandomUserData }
+export { userData, updateUserData, randomUserData, matchType, gameMode, updateMatchType, runGame, logout, matchSuggestedName, updateRandomUserData }

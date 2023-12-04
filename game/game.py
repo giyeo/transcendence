@@ -4,7 +4,7 @@ import time
 
 aX = 35
 bX = 745
-paddleSize = 100
+#paddleSize = 100
 topWall = 20
 botWall = 600
 middleX = 400 - 10
@@ -12,12 +12,15 @@ middleY = 300 + 10
 execs = 0
 
 #garanta que só bata 1 vez a bola por paddle
-def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn, gamemode):
-	global paddleSize, execs
+def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB, turn, paddleSizeA, paddleSizeB, gamemode):
+	global execs
 
 	execs += 1
-	if(gamemode == 'crazyPaddleSizes' and execs % (90 * 3) == 0):
-		paddleSize = random.choice([100, 150])
+	if gamemode == 'crazyGameMode':
+		ballVelocity = random.randint(5, 8)
+		if execs % (90 * 3) == 0:
+			paddleSizeA = random.randint(50, 200)
+			paddleSizeB = random.randint(50, 200)
 	sound = "none"
 	#bot
 	# if(ballY >= 570):
@@ -46,7 +49,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 
 	#hit paddle A
 	if (turn == 'a'
-	and (ballY > aY - 20 and ballY < aY + paddleSize)
+	and (ballY > aY - 20 and ballY < aY + paddleSizeA)
 	and (ballX > aX - 20 and ballX < aX + 20) ):
 		if(ballY > aY + 75):
 			ballRad = math.radians(60 - random.randint(0, 30))
@@ -60,7 +63,7 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		sound = "paddle"
 	#hit paddle B
 	if (turn == 'b'
-	and (ballY > bY - 20 and ballY < bY + paddleSize)
+	and (ballY > bY - 20 and ballY < bY + paddleSizeB)
 	and (ballX > bX - 20 and ballX < bX + 20) ):
 		if(ballY > bY + 75):
 			ballRad = math.radians(150)
@@ -88,5 +91,6 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 		'scoreB':scoreB,
 		'turn':turn,
 		'sound':sound,
-		'paddleSize':paddleSize
+		'paddleSizeA': paddleSizeA,
+		'paddleSizeB': paddleSizeB
 	})
