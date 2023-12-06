@@ -54,7 +54,8 @@
 			const value = input.value;
 			const numericValue = parseFloat(value);
 
-			if (isNaN(numericValue) || value.length > 6) {
+			if (isNaN(numericValue) || value.length > 6 ) {
+				window.alert('Only numbers are allowed and the number must be 6 digits.');
 				input.value = '';
 			}
 		}
@@ -63,7 +64,9 @@
 			const input = event.target;
 			const value = input.value;
 
-			if (value.length > 32) {
+			const regex = /^[A-Za-z]{0,32}$/;
+			if (!regex.test(value)) {
+				window.alert('Only letters are allowed and the name must be less than 32 characters.');
 				input.value = '';
 			}
 		}

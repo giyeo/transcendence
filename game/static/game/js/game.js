@@ -102,8 +102,12 @@ setInterval(function() {
 
 async function onMessageWebSocket(e) {
 	let data = JSON.parse(e.data)
+	if (data.type === 'gameWinner') {
+		currentWinner = data.winner;
+		gameSocket.close();
+	}
 	if (data.type === 'close') {
-		//another player has disconnect you won
+		//another player has disconnect and you have won
 		gameSocket.close();
 	}
 	if (data.type === 'handshake') {
@@ -126,32 +130,24 @@ async function handleGameState(data) {
 		paddleAy = data.aY * multiplierHeight;
 	if (player === 'a')
 		paddleBy = data.bY * multiplierHeight;
-	//console.log("RECEIBED", paddleAy, paddleBy);
 	scoreA = data.scoreA;
 	scoreB = data.scoreB;
 	if(data.sound != "none")
 		playAudio(data.sound);
-	if(scoreA > 20 || scoreB > 20) {
-		if(scoreA > scoreB)
-			currentWinner = 'a';
-		else
-			currentWinner = 'b';
-		scoreA = 0;
-		scoreB = 0;
-		gameSocket.close();
-	} else {
-		paddleSizeA = data.paddleSizeA * multiplierHeight;
-		paddleSizeB = data.paddleSizeB * multiplierHeight;
-		oldBall.x = ball.x;
-		oldBall.y = ball.y;
-		ball.x = (data.ballX * multiplierWidth) + leftShift;
-		ball.y = data.ballY * multiplierHeight;
-	}
+	paddleSizeA = data.paddleSizeA * multiplierHeight;
+	paddleSizeB = data.paddleSizeB * multiplierHeight;
+	oldBall.x = ball.x;
+	oldBall.y = ball.y;
+	ball.x = (data.ballX * multiplierWidth) + leftShift;
+	ball.y = data.ballY * multiplierHeight;
 }
 
 async function onCloseWebSocket() {
 	let element = document.getElementById('countDown');
 	console.log("CLOSE matchType: ", matchType);
+	while (!currentWinner) {
+		await sleep(100);
+	}
 	if (matchType === 'simpleMatch') {
 		element.innerHTML = `Game Over!\nWinner is ${currentWinner}`;
 		console.log("currentWinner simple: ", currentWinner);
@@ -276,8 +272,13 @@ async function enterQueue() {
 		console.log("matchType: ", matchType, "gameMode: ", gameMode, "matchSuggestedName: ", matchSuggestedName);
 		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${gameMode}&matchSuggestedName=${matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
 			.then(response => {
-				console.log(response)
-				resolve(response)
+				if (response.status === 200) {
+					resolve(response)
+				} else if (response.status === 400) {
+						goToMenu();
+						reject(response)
+				}
+				reject(response)
 			})
 			.catch(error => {
 				console.error('There was a problem with the fetch operation:', error);
@@ -473,12 +474,14 @@ function setupGame() {
 			top: 60 * multiplierHeight,
 			left: leftShift + (250 * multiplierWidth),
 			fontsize: 100 * multiplierWidth,
+			value: scoreA,
 			element: document.getElementById('scoreA')
 		},
 		{
 			top: 60 * multiplierHeight,
 			left: leftShift + (460 * multiplierWidth),
 			fontsize: 100 * multiplierWidth,
+			value: scoreB,
 			element: document.getElementById('scoreB')
 		},
 		{
@@ -490,6 +493,7 @@ function setupGame() {
 	for (let elementPosition of elementPositions) {
 		if (elementPosition.element.id == 'scoreA' || elementPosition.element.id == 'scoreB') {
 			elementPosition.element.style.fontSize = `${elementPosition.fontsize}px`;
+			elementPosition.element.innerHTML = `${elementPosition.value}`;
 		}
 		if (elementPosition.element.id == 'verticalWall') {
 			elementPosition.element.style.borderLeft = `${elementPosition.borderleft}px dashed #f2f2f2`;

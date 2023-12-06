@@ -9,7 +9,7 @@ from .models import Queue
 import time
 
 count = 0
-t_count = 0 # tournament count
+t_count = {}
 match_name = None
 values = {}
 queue = []
@@ -18,8 +18,10 @@ matchPlayers = {}
 
 tournamentMatchName0 = None
 tournamentMatchName1 = None
-tournamentMatchPlayers = [] # max 4 players
-tournamentMatchPlayersLogins = [] # max 4 players logins
+#tournamentMatchPlayers = [] # max 4 players
+#tournamentMatchPlayersLogins = [] # max 4 players logins
+tournamentMatchPlayers = {}
+tournamentMatchPlayersLogins = {}
 
 simpleMatchNameDefaultGameModeName = None
 simpleMatchPlayersDefaultGameMode = [] # max 2 players
@@ -63,25 +65,32 @@ class GameConsumer(WebsocketConsumer):
         """
         global t_count, tournaments, tournamentMatchPlayers, tournamentMatchPlayersLogins
 
-        tournamentMatchPlayers.append(self.channel_name)
+        if matchSuggestedName == '' or matchSuggestedName == None:
+            matchSuggestedName = 'default'
+        if not matchSuggestedName in tournamentMatchPlayers:
+            tournamentMatchPlayers[matchSuggestedName] = []
+            tournamentMatchPlayersLogins[matchSuggestedName] = []
+        if not matchSuggestedName in t_count:
+            t_count[matchSuggestedName] = 0
+        tournamentMatchPlayers[matchSuggestedName].append(self.channel_name)
         print("TOURNAMENT MATCH PLAYERS: ", tournamentMatchPlayers)
-        tournamentMatchPlayersLogins.append(login)
+        tournamentMatchPlayersLogins[matchSuggestedName].append(login)
         print("TOURNAMENT MATCH PLAYERS LOGINS: ", tournamentMatchPlayersLogins)
 
-        if t_count % 4 == 0:
-            t_count += 1
+        if t_count[matchSuggestedName] % 4 == 0:
+            t_count[matchSuggestedName] += 1
             print("PLAYER A")
             return 'a'
-        elif t_count % 4 == 1:
-            t_count += 1
+        elif t_count[matchSuggestedName] % 4 == 1:
+            t_count[matchSuggestedName] += 1
             print("PLAYER B")
             return 'b'
-        elif t_count % 4 == 2:
-            t_count += 1
+        elif t_count[matchSuggestedName] % 4 == 2:
+            t_count[matchSuggestedName] += 1
             print("PLAYER C")
             return 'a'
-        elif t_count % 4 == 3:
-            t_count += 1
+        elif t_count[matchSuggestedName] % 4 == 3:
+            t_count[matchSuggestedName] += 1
             print("PLAYER D")
             self.newTournamentMatch(matchSuggestedName)
             return 'b'
@@ -161,20 +170,19 @@ class GameConsumer(WebsocketConsumer):
     def doTournamentMatch(self, matchSuggestedName):
         global t_count, tournamentMatchPlayers, values, tournamentMatchPlayersLogins
 
-        print("MATCH SUGGESTED NAME: ", matchSuggestedName)
-        tournament_match_name0 = "tournament" + str(t_count // 4) + "_0" + matchSuggestedName
+        tournament_match_name0 = "tournament" + str(t_count[matchSuggestedName] // 4) + "_0" + matchSuggestedName
         async_to_sync(self.channel_layer.group_add)(
-            tournament_match_name0, tournamentMatchPlayers[0]
+            tournament_match_name0, tournamentMatchPlayers[matchSuggestedName][0]
         )
         async_to_sync(self.channel_layer.group_add)(
-            tournament_match_name0, tournamentMatchPlayers[1]
+            tournament_match_name0, tournamentMatchPlayers[matchSuggestedName][1]
         )
-        tournament_match_name1 = "tournament" + str(t_count // 4) + "_1" + matchSuggestedName
+        tournament_match_name1 = "tournament" + str(t_count[matchSuggestedName] // 4) + "_1" + matchSuggestedName
         async_to_sync(self.channel_layer.group_add)(
-            tournament_match_name1, tournamentMatchPlayers[2]
+            tournament_match_name1, tournamentMatchPlayers[matchSuggestedName][2]
         )
         async_to_sync(self.channel_layer.group_add)(
-            tournament_match_name1, tournamentMatchPlayers[3]
+            tournament_match_name1, tournamentMatchPlayers[matchSuggestedName][3]
         )
 
         values[tournament_match_name0] = {"aY": 270, "bY": 270}
@@ -185,15 +193,15 @@ class GameConsumer(WebsocketConsumer):
         matchPlayers[tournament_match_name0] = []
         matchPlayers[tournament_match_name1] = []
         print("TOURNAMENT MATCH PLAYERS: ", tournamentMatchPlayers)
-        matches[tournament_match_name0].append(tournamentMatchPlayers[0])
-        matches[tournament_match_name0].append(tournamentMatchPlayers[1])
-        matches[tournament_match_name1].append(tournamentMatchPlayers[2])
-        matches[tournament_match_name1].append(tournamentMatchPlayers[3])
+        matches[tournament_match_name0].append(tournamentMatchPlayers[matchSuggestedName][0])
+        matches[tournament_match_name0].append(tournamentMatchPlayers[matchSuggestedName][1])
+        matches[tournament_match_name1].append(tournamentMatchPlayers[matchSuggestedName][2])
+        matches[tournament_match_name1].append(tournamentMatchPlayers[matchSuggestedName][3])
         print("MATCHES: ", matches)
-        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[0])
-        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[1])
-        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[2])
-        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[3])
+        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[matchSuggestedName][0])
+        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[matchSuggestedName][1])
+        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[matchSuggestedName][2])
+        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[matchSuggestedName][3])
         print("MATCH PLAYERS: ", matchPlayers)
         return tournament_match_name0, tournament_match_name1
         
@@ -255,7 +263,7 @@ class GameConsumer(WebsocketConsumer):
         print("AFTER NEW TOURNAMENT MATCH: ", "0:", tournamentMatchName0, "1:", tournamentMatchName1)
 
         print("SEND MESSAGE TO EACH PLAYER")
-        for i, tournament_match_player in enumerate(tournamentMatchPlayers):
+        for i, tournament_match_player in enumerate(tournamentMatchPlayers[matchSuggestedName]):
             if (i == 0):
                 player = 'a'
                 match_name = tournamentMatchName0
@@ -279,8 +287,8 @@ class GameConsumer(WebsocketConsumer):
         thread.daemon = True
         thread.start()
         print("CLEAR TOURNAMENT MATCH PLAYERS")
-        tournamentMatchPlayers.clear()
-        tournamentMatchPlayersLogins.clear()
+        tournamentMatchPlayers[matchSuggestedName].clear()
+        tournamentMatchPlayersLogins[matchSuggestedName].clear()
         print("STARTED GAME THREAD. MATCH NAME 0:", tournamentMatchName0, matches[tournamentMatchName0], "MATCH NAME 1:", tournamentMatchName1, matches[tournamentMatchName1])
 
     def receive(self, text_data):
@@ -330,7 +338,19 @@ class GameConsumer(WebsocketConsumer):
                     "type":"send_game_data",
                     "data": game_data
                 })
-            if(game_data.get('scoreA') > 20 or game_data.get('scoreB') > 20):
+            if(game_data.get('scoreA') > 1 or game_data.get('scoreB') > 1):
+                print("GAME OVER")
+                winner = None
+                if (game_data.get('scoreA') > game_data.get('scoreB')):
+                    winner = 'a'
+                elif (game_data.get('scoreA') < game_data.get('scoreB')):
+                    winner = 'b'
+                print("WINNER: ", winner)
+                async_to_sync(self.channel_layer.group_send)(match_name,
+                        {
+                            "type":"send_game_data",
+                            "winner": winner
+                        })
                 return #kill the thread
             if(len(matches[match_name]) < 2):
                 async_to_sync(self.channel_layer.group_send)(match_name,
@@ -355,6 +375,13 @@ class GameConsumer(WebsocketConsumer):
         if("close" in event):
             self.send(text_data=json.dumps({
                 "type":"close",
+            }))
+            return
+
+        if ("winner" in event):
+            self.send(text_data=json.dumps({
+                "type":"gameWinner",
+                "winner": event["winner"]
             }))
             return
         

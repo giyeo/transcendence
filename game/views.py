@@ -232,9 +232,11 @@ def enterQueue(request):
     matchSuggestedName = request.GET.get('matchSuggestedName')
     if matchSuggestedName:
         if (len(matchSuggestedName) > 32):
-            matchSuggestedName = matchSuggestedName[:32]
-        else:
-            matchSuggestedName = ""
+            return JsonResponse({}, status=400)
+        if not matchSuggestedName.isalpha():
+            return JsonResponse({}, status=400)
+    else:
+        matchSuggestedName = ""
     print(request.user.id, matchType, gamemode, matchSuggestedName)
     try:
         queue = Queue.objects.create(user_id=request.user.id,
