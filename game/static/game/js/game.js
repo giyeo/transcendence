@@ -171,12 +171,18 @@ async function onCloseWebSocket() {
 	setBallmiddle();
 	console.log('WebSocket closed');
 	element.innerHTML = "";
-	if (currentWinner == player) {	
+	if (currentWinner == player) {
+		currentWinner = null;
+		console.log("YOU'RE THE MOTHERFUCKING WINNER", matchType)
 		if (matchType === 'tournamentMatch') {
 			updateMatchType("tournamentMatchFinal");
 			await sleep(1000);
 			runGame();
+		} else {
+			updateMatchType('simpleMatch');
 		}
+	} else {
+		updateMatchType('simpleMatch');
 	}
 }
 
@@ -270,7 +276,13 @@ async function enterQueue() {
 	loadingScreen.style.display = 'block';
 	return new Promise((resolve, reject) => {
 		console.log("matchType: ", matchType, "gameMode: ", gameMode, "matchSuggestedName: ", matchSuggestedName);
-		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${gameMode}&matchSuggestedName=${matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
+		let _matchSuggestedName = "";
+		if (matchType == 'simpleMatch') {
+			_matchSuggestedName = "";
+		} else {
+			_matchSuggestedName = matchSuggestedName;
+		}
+		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${gameMode}&matchSuggestedName=${_matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
 			.then(response => {
 				if (response.status === 200) {
 					resolve(response)

@@ -106,6 +106,7 @@ function setupSinglePageApplication() {
 
 	document.getElementById('find-match').addEventListener('click', () => {
 		matchSuggestedName = matchSuggestedNameElement.value;
+		matchTypeElement.value = "simpleMatch";
 		runGame();
 		matchSuggestedNameElement.value = "";
 	});

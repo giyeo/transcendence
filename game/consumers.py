@@ -12,9 +12,6 @@ count = 0
 t_count = {}
 match_name = None
 values = {}
-queue = []
-matches = {}
-matchPlayers = {}
 
 tournamentMatchName0 = None
 tournamentMatchName1 = None
@@ -134,15 +131,7 @@ class GameConsumer(WebsocketConsumer):
 
             values[match_name] = {"aY": 270, "bY": 270}
             print("VALUES: ", values)
-            matches[match_name] = []
-            matchPlayers[match_name] = []
             print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayersDefaultGameMode)
-            for player in simpleMatchPlayersDefaultGameMode:
-                matches[match_name].append(player)
-            print("MATCHES: ", matches)
-            for login in simpleMatchPlayersLoginsDefaultGameMode:
-                matchPlayers[match_name].append(login)
-            print("MATCH PLAYERS: ", matchPlayers)
             return match_name
         elif gamemode == 'crazyGameMode':
             match_name = "matchcrazy" + str(count // 2)
@@ -155,15 +144,7 @@ class GameConsumer(WebsocketConsumer):
 
             values[match_name] = {"aY": 270, "bY": 270}
             print("VALUES: ", values)
-            matches[match_name] = []
-            matchPlayers[match_name] = []
             print("SIMPLE MATCH PLAYERS: ", simpleMatchPlayersCrazyGameMode)
-            for player in simpleMatchPlayersCrazyGameMode:
-                matches[match_name].append(player)
-            print("MATCHES: ", matches)
-            for login in simpleMatchPlayersLoginsCrazyGameMode:
-                matchPlayers[match_name].append(login)
-            print("MATCH PLAYERS: ", matchPlayers)
             return match_name
 
 
@@ -188,21 +169,7 @@ class GameConsumer(WebsocketConsumer):
         values[tournament_match_name0] = {"aY": 270, "bY": 270}
         values[tournament_match_name1] = {"aY": 270, "bY": 270}
         print("VALUES: ", values)
-        matches[tournament_match_name0] = []
-        matches[tournament_match_name1] = []
-        matchPlayers[tournament_match_name0] = []
-        matchPlayers[tournament_match_name1] = []
         print("TOURNAMENT MATCH PLAYERS: ", tournamentMatchPlayers)
-        matches[tournament_match_name0].append(tournamentMatchPlayers[matchSuggestedName][0])
-        matches[tournament_match_name0].append(tournamentMatchPlayers[matchSuggestedName][1])
-        matches[tournament_match_name1].append(tournamentMatchPlayers[matchSuggestedName][2])
-        matches[tournament_match_name1].append(tournamentMatchPlayers[matchSuggestedName][3])
-        print("MATCHES: ", matches)
-        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[matchSuggestedName][0])
-        matchPlayers[tournament_match_name0].append(tournamentMatchPlayersLogins[matchSuggestedName][1])
-        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[matchSuggestedName][2])
-        matchPlayers[tournament_match_name1].append(tournamentMatchPlayersLogins[matchSuggestedName][3])
-        print("MATCH PLAYERS: ", matchPlayers)
         return tournament_match_name0, tournament_match_name1
         
 
@@ -230,7 +197,7 @@ class GameConsumer(WebsocketConsumer):
             print("CLEAR SIMPLE MATCH PLAYERS")
             simpleMatchPlayersDefaultGameMode.clear()
             simpleMatchPlayersLoginsDefaultGameMode.clear()
-            print("STARTED GAME THREAD", simpleMatchNameDefaultGameModeName, matches[simpleMatchNameDefaultGameModeName])
+            print("STARTED GAME THREAD", simpleMatchNameDefaultGameModeName)
         elif gamemode == 'crazyGameMode':
             print("BEFORE NEW MATCH", simpleMatchPlayersCrazyGameMode)
             simpleMatchNameCrazyGameModeName = self.doMatch(gamemode)
@@ -252,7 +219,7 @@ class GameConsumer(WebsocketConsumer):
             print("CLEAR SIMPLE MATCH PLAYERS")
             simpleMatchPlayersCrazyGameMode.clear()
             simpleMatchPlayersLoginsCrazyGameMode.clear()
-            print("STARTED GAME THREAD", simpleMatchNameCrazyGameModeName, matches[simpleMatchNameCrazyGameModeName])
+            print("STARTED GAME THREAD", simpleMatchNameCrazyGameModeName)
 
 
     def newTournamentMatch(self, matchSuggestedName):
@@ -289,7 +256,7 @@ class GameConsumer(WebsocketConsumer):
         print("CLEAR TOURNAMENT MATCH PLAYERS")
         tournamentMatchPlayers[matchSuggestedName].clear()
         tournamentMatchPlayersLogins[matchSuggestedName].clear()
-        print("STARTED GAME THREAD. MATCH NAME 0:", tournamentMatchName0, matches[tournamentMatchName0], "MATCH NAME 1:", tournamentMatchName1, matches[tournamentMatchName1])
+        print("STARTED GAME THREAD. MATCH NAME 0:", tournamentMatchName0, "MATCH NAME 1:", tournamentMatchName1)
 
     def receive(self, text_data):
         data = json.loads(text_data)
@@ -301,16 +268,32 @@ class GameConsumer(WebsocketConsumer):
         return
 
     def disconnect(self, close_code):
-        global count
-        if(self.channel_name in queue):
-            count -= 1
-            queue.clear()
-        # find match based on channel name
-        for match in matches:
-            if(self.channel_name in matches[match]):
-                matches[match].remove(self.channel_name)
-
-        print("DISCONNECT", close_code)
+        global count, simpleMatchPlayersDefaultGameMode, simpleMatchPlayersLoginsDefaultGameMode, simpleMatchPlayersCrazyGameMode, simpleMatchPlayersLoginsCrazyGameMode, tournamentMatchPlayers, tournamentMatchPlayersLogins
+        print("DISCONNECTING", self.channel_name)
+        for player in simpleMatchPlayersDefaultGameMode:
+            if (self.channel_name == player):
+                index = simpleMatchPlayersDefaultGameMode.index(player)
+                print("INDEX: ", index)
+                simpleMatchPlayersDefaultGameMode.pop(index)
+                simpleMatchPlayersLoginsDefaultGameMode.pop(index)
+                count -= 1
+                break
+        for player in simpleMatchPlayersCrazyGameMode:
+            if (self.channel_name == player):
+                index = simpleMatchPlayersCrazyGameMode.index(player)
+                simpleMatchPlayersCrazyGameMode.pop(index)
+                simpleMatchPlayersLoginsCrazyGameMode.pop(index)
+                count -= 1
+                break
+        for matchSuggestedName in tournamentMatchPlayers:
+            for player in tournamentMatchPlayers[matchSuggestedName]:
+                if (self.channel_name == player):
+                    index = tournamentMatchPlayers[matchSuggestedName].index(player)
+                    tournamentMatchPlayers[matchSuggestedName].pop(index)
+                    tournamentMatchPlayersLogins[matchSuggestedName].pop(index)
+                    t_count[matchSuggestedName] -= 1
+                    break
+        print("DISCONNECT", "CLOSE CODE:", close_code, "CHANNEL NAME:", self.channel_name)
 
 
     def gameLoop(self, match_name):
@@ -338,7 +321,7 @@ class GameConsumer(WebsocketConsumer):
                     "type":"send_game_data",
                     "data": game_data
                 })
-            if(game_data.get('scoreA') > 1 or game_data.get('scoreB') > 1):
+            if(game_data.get('scoreA') > 0 or game_data.get('scoreB') > 0):
                 print("GAME OVER")
                 winner = None
                 if (game_data.get('scoreA') > game_data.get('scoreB')):
@@ -352,13 +335,6 @@ class GameConsumer(WebsocketConsumer):
                             "winner": winner
                         })
                 return #kill the thread
-            if(len(matches[match_name]) < 2):
-                async_to_sync(self.channel_layer.group_send)(match_name,
-                    {
-                        "type":"send_game_data",
-                        "close": True
-                    })
-                return
             if(game_data.get('sound') == 'score'):
                 time.sleep(1)
             time.sleep(11/1000)  # 10ms
