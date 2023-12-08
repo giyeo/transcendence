@@ -63,7 +63,17 @@ const translations = {
 		"en": "To toggle 2FA, scan the QR code below with your 2FA app and enter the OTP code.",
 		"pt": "Para alternar 2FA, escaneie o código QR abaixo com seu aplicativo 2FA e insira o código OTP.",
 		"fr": "Pour basculer la 2FA, scannez le code QR ci-dessous avec votre application 2FA et entrez le code OTP.",
-	}
+	},
+	"changeAliasName": {
+		"en": "Change Alias Name",
+		"pt": "Alterar nome de alias",
+		"fr": "Changer le nom d'alias",
+	},
+	"clearAliasName": {
+		"en": "Clear Alias Name",
+		"pt": "Limpar nome de alias",
+		"fr": "Effacer le nom d'alias",
+	},
 };
 
 export function updateLanguage(selectedLanguage) {

@@ -70,6 +70,17 @@
 				input.value = '';
 			}
 		}
+
+		function validateAlias(event) {
+			const input = event.target;
+			const value = input.value;
+
+			const regex = /^[A-Za-z]{0,12}$/;
+			if (!regex.test(value)) {
+				window.alert('Only letters are allowed and the alias must be less than 12 characters.');
+				input.value = '';
+			}
+		}
 	</script>
 </body>
 </html>

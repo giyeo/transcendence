@@ -21,7 +21,12 @@ function mountMenu() {
 		login = userData.login
 	}
 	document.getElementById("image").src = img;
-	document.getElementById("loginName").innerText = login;
+	if (localStorage.getItem("aliasName")) {
+		document.getElementById("loginName").innerText = login + " - " + localStorage.getItem("aliasName");
+	} else {
+		document.getElementById("loginName").innerText = login;
+	}
+
 }
 
 async function goToMenu(intraCode, intraAccessToken) {
@@ -274,6 +279,21 @@ function setupSinglePageApplication() {
 		}
 		languageElement.style.display = "block";
 		_2FAElement.style.display = "block";
+	});
+
+	var aliasNameElement = document.getElementById('aliasName');
+	var aliasNameButtonElement = document.getElementById('changeAliasName');
+	var aliasNameClearButtonElement = document.getElementById('clearAliasName');
+	aliasNameButtonElement.addEventListener('click', () => {
+		if (aliasNameElement.value.length > 0) {
+			localStorage.setItem("aliasName", aliasNameElement.value);
+			document.getElementById("loginName").innerText = userData.login + " - " + aliasNameElement.value;
+		}
+	});
+
+	aliasNameClearButtonElement.addEventListener('click', () => {
+		localStorage.removeItem("aliasName");
+		document.getElementById("loginName").innerText = userData.login;
 	});
 }
 

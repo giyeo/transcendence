@@ -11,6 +11,7 @@ class CustomUser(models.Model):
     
 class Queue(models.Model):
     user_id = models.IntegerField()
+    alias = models.CharField(max_length=12, default="dummy")
     login = models.CharField(max_length=42)
     gamemode = models.CharField(max_length=32, default="default")
     match_type = models.CharField(max_length=32, default="default")

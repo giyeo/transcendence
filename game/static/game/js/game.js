@@ -10,6 +10,7 @@ let ready = false;
 let sendInputRateMs = 12; //16 = 60fps
 let player = 'a'
 let matchName = "";
+let gameNames = "";
 let leftShift;
 let startCountDown = false;
 //É declarado no front-end mesmo, podemos fazer uma lógica para pegar do backend no handshake.
@@ -39,8 +40,8 @@ import { matchType, gameMode, matchSuggestedName, updateMatchType, userData, run
 import { getAccessToken } from './util.js';
 
 function setBallmiddle() {
-	ball.x = (400 - 10 + leftShift) * multiplierWidth;
-	ball.y = (300 + 10) * multiplierHeight;
+	ball.x = leftShift + (390 * multiplierWidth);
+	ball.y = paddleAy + (paddleSizeA / 2);
 }
 
 //____________________________UTILS_BEGIN____________________________
@@ -113,7 +114,8 @@ async function onMessageWebSocket(e) {
 	if (data.type === 'handshake') {
 		player = data.player;
 		matchName = data.match;
-		console.log("GAME MODE FROM BACKEND IS: ", data.gamemode);
+		gameNames = data.alias;
+		console.log("player: ", player, "matchName: ", matchName, "gameNames: ", gameNames);
 	}
 	if (data.type === 'gameState') {
 		received++;
@@ -161,7 +163,7 @@ async function onCloseWebSocket() {
 		console.log("currentWinner tournament: ", currentWinner);
 	}
 	element.setAttribute('style', 'display: block;');
-	await sleep(1000);
+	await sleep(3000);
 	container.innerHTML = '';
 	ballPositionHistory = [];
 	gameSocket = null;
@@ -193,6 +195,8 @@ async function countDown() {
 		await sleep(100);
 	}
 	startCountDown = false;
+	document.getElementById('playerA').innerHTML = "Player A: " + gameNames["a"]
+	document.getElementById('playerB').innerHTML = "Player B: " + gameNames["b"]
 	while(count > 0) {
 		countDownElement.innerHTML = `${count}`;
 		await sleep(1000);
@@ -277,12 +281,18 @@ async function enterQueue() {
 	return new Promise((resolve, reject) => {
 		console.log("matchType: ", matchType, "gameMode: ", gameMode, "matchSuggestedName: ", matchSuggestedName);
 		let _matchSuggestedName = "";
+		let aliasName = "";
 		if (matchType == 'simpleMatch') {
 			_matchSuggestedName = "";
 		} else {
 			_matchSuggestedName = matchSuggestedName;
 		}
-		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${gameMode}&matchSuggestedName=${_matchSuggestedName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
+		if (localStorage.getItem("aliasName")) {
+			aliasName = localStorage.getItem("aliasName");
+		} else {
+			aliasName = "";
+		}
+		fetch(API_URL + `/game/enterQueue?matchType=${matchType}&gamemode=${gameMode}&matchSuggestedName=${_matchSuggestedName}&alias=${aliasName}`, {headers: {'Authorization': 'Bearer ' + getAccessToken()}})
 			.then(response => {
 				if (response.status === 200) {
 					resolve(response)
@@ -500,7 +510,7 @@ function setupGame() {
 			top: 280 * multiplierHeight,
 			left: leftShift + 360 * multiplierWidth,
 			element: document.getElementById('countDown')
-		},
+		}
 	]
 	for (let elementPosition of elementPositions) {
 		if (elementPosition.element.id == 'scoreA' || elementPosition.element.id == 'scoreB') {

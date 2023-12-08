@@ -5,6 +5,11 @@
 <div id="profile">
 	<img id="image" src="{% static 'game/favicon.ico' %}" alt="Profile picture" height="150px" width="150px">
 	<p id="loginName"></p>
+	<input id="aliasName" type="text" oninput="validateAlias(event)" placeholder="Alias name"></input>
+	<div>
+		<button id="changeAliasName" class="translation">Change alias name</button>
+		<button id="clearAliasName" class="translation">Clear alias name</button>
+	</div>
 </div>
 
 <hr>

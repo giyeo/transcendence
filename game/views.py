@@ -221,11 +221,6 @@ def enterQueue(request):
     else:
         gamemode = "defaultGameMode"
 
-    # simpleMatch + defaultGameMode <--
-    # simpleMatch + crazyGameMode <--
-    # tournamentMatch + defaultGameMode <--
-    # tournamentMatch + crazyGameMode <-- forbidden
-
     if (matchType == "tournamentMatch" and gamemode == "crazyGameMode"):
         return JsonResponse({}, status=400)
 
@@ -237,13 +232,22 @@ def enterQueue(request):
             return JsonResponse({}, status=400)
     else:
         matchSuggestedName = ""
+
+    alias = request.GET.get('alias')
+    if alias:
+        if (len(alias) > 12):
+            return JsonResponse({}, status=400)
+        if not alias.isalpha():
+            return JsonResponse({}, status=400)
+
     print(request.user.id, matchType, gamemode, matchSuggestedName)
     try:
         queue = Queue.objects.create(user_id=request.user.id,
                                     login=request.user.username,
                                     match_type=matchType,
                                     gamemode=gamemode,
-                                    match_suggested_name=matchSuggestedName)
+                                    match_suggested_name=matchSuggestedName,
+                                    alias=alias)
         queue.save()
     except Exception as e:
         return JsonResponse({}, status=400)
