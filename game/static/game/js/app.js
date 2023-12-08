@@ -19,6 +19,8 @@ function mountMenu() {
 	if(userData) {
 		img = userData.image.versions.medium
 		login = userData.login
+		var gameModeElement = document.getElementById('gameModeElement');
+		gameModeElement.style.display = "block";
 	}
 	document.getElementById("image").src = img;
 	if (localStorage.getItem("aliasName")) {
@@ -30,20 +32,14 @@ function mountMenu() {
 }
 
 async function goToMenu(intraCode, intraAccessToken) {
-	console.log("Going to menu");
 	window.location.hash = 'loading'
 	try {
 		if(intraCode || intraAccessToken) {
-			console.log("Getting user data");
 			await REST.getUserData(intraCode, intraAccessToken);
-			console.log("Got user data");
 			if (userData) {
-				console.log("User data exists")
 				if (!UTIL.getAccessToken()) {
-					console.log("No access token, OTP required")
 					window.location.hash = 'login_otp'
 				} else {
-					console.log("Access token exists, no OTP required, going to menu")
 					mountMenu();
 					window.location.hash = 'menu'
 				}
@@ -59,7 +55,6 @@ async function goToMenu(intraCode, intraAccessToken) {
 
 		}
 	} catch (error) {
-		console.error('Error getting user data:', error);
 		window.location.hash = 'login'
 	}
 }
@@ -93,6 +88,8 @@ function logout() {
 	localStorage.removeItem("intra_access_token");
 	localStorage.removeItem("access_token");
 	localStorage.removeItem("access_token_expires_at");
+	localStorage.removeItem("aliasName");
+	localStorage.removeItem("selectedLanguage");
 	window.location.reload();
 }
   
@@ -158,10 +155,8 @@ function setupSinglePageApplication() {
 
 	document.getElementById('login-intra').addEventListener('click', () => {
 		if (UTIL.getIntraAccessToken()) {
-			console.log("Already logged in");
 			window.location.reload();
 		} else {
-			console.log("Not logged in. Redirecting...");
 			window.location.href = INTRA_API_URL_AUTH + "?client_id=" + INTRA_CLIENT_ID + "&redirect_uri=" + INTRA_REDIRECT_URI + "&response_type=" + INTRA_RESPONSE_TYPE;;
 		}
 	});
@@ -196,9 +191,7 @@ function setupSinglePageApplication() {
 
 	matchTypeElement.value = "simpleMatch";
 	matchTypeElement.addEventListener('change', () => {
-		console.log("CHANGING MATCH TYPE: ", matchTypeElement.value);
 		if (matchTypeElement.value === "simpleMatch") {
-			console.log("Simple");
 			matchType = "simpleMatch";
 			selectTournamentNameElement.style.display = "none";
 			if (gameModeElement.length === 1) {
@@ -209,7 +202,6 @@ function setupSinglePageApplication() {
 			}
 		}
 		else if (matchTypeElement.value === "tournamentMatch") {
-			console.log("Tournament");
 			matchType = "tournamentMatch";
 			selectTournamentNameElement.style.display = "block";
 			if (gameModeElement.value != "defaultGameMode" || gameMode != "defaultGameMode") {
@@ -219,7 +211,6 @@ function setupSinglePageApplication() {
 			gameModeElement.remove(1);
 		}
 		else {
-			console.log("Simple anyway");
 			matchType = "simpleMatch";
 			selectTournamentNameElement.style.display = "none";
 			if (gameModeElement.length === 1) {
@@ -230,13 +221,16 @@ function setupSinglePageApplication() {
 			}
 		}
 		matchSuggestedNameElement.value = "";
-		console.log("MATCH TYPE: ", matchType);
-		console.log("GAME MODE: ", gameMode);
 	});
 
 	var gameModeElement = document.getElementById('gameModeElement');
 
 	gameModeElement.value = "defaultGameMode";
+	if (userData) {
+		gameModeElement.style.display = "block";
+	} else {
+		gameModeElement.style.display = "none";
+	}
 	gameModeElement.addEventListener('change', () => {
 		if (gameModeElement.value === "defaultGameMode") {
 			gameMode = "defaultGameMode";
@@ -264,8 +258,6 @@ function setupSinglePageApplication() {
 				matchTypeElement.add(option);
 			}
 		}
-		console.log("GAME MODE: ", gameMode);
-		console.log("MATCH TYPE: ", matchType);
 	});
 
 	var settingsButtonElement = document.getElementById('settingsButton');
@@ -287,13 +279,21 @@ function setupSinglePageApplication() {
 	aliasNameButtonElement.addEventListener('click', () => {
 		if (aliasNameElement.value.length > 0) {
 			localStorage.setItem("aliasName", aliasNameElement.value);
-			document.getElementById("loginName").innerText = userData.login + " - " + aliasNameElement.value;
+			if (userData) {
+				document.getElementById("loginName").innerText = userData.login + " - " + aliasNameElement.value;
+			} else if (randomUserData) {
+				document.getElementById("loginName").innerText = randomUserData.login.username + " - " + aliasNameElement.value;
+			}
 		}
 	});
 
 	aliasNameClearButtonElement.addEventListener('click', () => {
 		localStorage.removeItem("aliasName");
-		document.getElementById("loginName").innerText = userData.login;
+		if (userData) {
+			document.getElementById("loginName").innerText = userData.login;
+		} else if (randomUserData) {
+			document.getElementById("loginName").innerText = randomUserData.login.username;
+		}
 	});
 }
 

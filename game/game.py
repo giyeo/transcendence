@@ -30,7 +30,6 @@ def newBallPosition(aY, bY, ballY, ballX, ballRad, ballVelocity, scoreA, scoreB,
 	# else:
 	# 	bY = ballY - 50
 
-	# print(aY, bY, ballX, ballY, ballVelocity)
 
 	ballX += ballVelocity * math.cos(ballRad)
 	ballY += ballVelocity * math.sin(ballRad)

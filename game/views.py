@@ -38,13 +38,11 @@ def getToken(code):
         "code": code,
         "redirect_uri": INTRA_REDIRECT_URI,
     }
-    print("Trying to getting a new token")
     try:
         r = requests.post(INTRA_API_URL_TOKEN, data=data)
         r.raise_for_status()
     except requests.exceptions.RequestException as e:
         raise e
-    print("Got a new token", r.json())
     return r.json()
 
 
@@ -240,7 +238,6 @@ def enterQueue(request):
         if not alias.isalpha():
             return JsonResponse({}, status=400)
 
-    print(request.user.id, matchType, gamemode, matchSuggestedName)
     try:
         queue = Queue.objects.create(user_id=request.user.id,
                                     login=request.user.username,

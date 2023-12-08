@@ -77,7 +77,6 @@ const translations = {
 };
 
 export function updateLanguage(selectedLanguage) {
-	console.log("Selected Language:", selectedLanguage)
 	var elementsToUpdate = document.querySelectorAll('.translation');
 	elementsToUpdate.forEach(function(element) {
 		element.innerHTML = translations[element.id][selectedLanguage];

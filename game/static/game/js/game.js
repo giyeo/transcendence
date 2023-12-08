@@ -92,12 +92,11 @@ function addPosition(x, y) {
 const loadingScreen = document.getElementById('loadingScreen');
 
 function onOpenWebSocket(e) {
-	console.log('WebSocket connected');
+	
 }
 
 var received = 0;
 setInterval(function() {
-	//console.log("received: ", received, "/s");
 	received = 0;
 }, 1000);
 
@@ -115,7 +114,6 @@ async function onMessageWebSocket(e) {
 		player = data.player;
 		matchName = data.match;
 		gameNames = data.alias;
-		console.log("player: ", player, "matchName: ", matchName, "gameNames: ", gameNames);
 	}
 	if (data.type === 'gameState') {
 		received++;
@@ -146,21 +144,17 @@ async function handleGameState(data) {
 
 async function onCloseWebSocket() {
 	let element = document.getElementById('countDown');
-	console.log("CLOSE matchType: ", matchType);
 	while (!currentWinner) {
 		await sleep(100);
 	}
 	if (matchType === 'simpleMatch') {
 		element.innerHTML = `Game Over!\nWinner is ${currentWinner}`;
-		console.log("currentWinner simple: ", currentWinner);
 	}
 	else if (matchType === 'tournamentMatch') {
 		element.innerHTML = `Game Over!\nWinner of the first round is ${currentWinner}`;
-		console.log("currentWinner first round: ", currentWinner);
 	}
 	else if (matchType === 'tournamentMatchFinal') {
 		element.innerHTML = `Game Over!\nWinner of the tournament is ${currentWinner}`;
-		console.log("currentWinner tournament: ", currentWinner);
 	}
 	element.setAttribute('style', 'display: block;');
 	await sleep(3000);
@@ -171,11 +165,9 @@ async function onCloseWebSocket() {
 	scoreA = 0;
 	scoreB = 0;
 	setBallmiddle();
-	console.log('WebSocket closed');
 	element.innerHTML = "";
 	if (currentWinner == player) {
 		currentWinner = null;
-		console.log("YOU'RE THE MOTHERFUCKING WINNER", matchType)
 		if (matchType === 'tournamentMatch') {
 			updateMatchType("tournamentMatchFinal");
 			await sleep(1000);
@@ -210,10 +202,8 @@ async function countDown() {
 
 class sendWebSocket {
 	static async sendPaddlePosition() {
-		//console.log(paddleAy, paddleBy, multiplierHeight);
 		let sAy = paddleAy / multiplierHeight;
 		let sBy = paddleBy / multiplierHeight;
-		//console.log(sBy, sAy)
 		if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
 			if(player === 'a') {
 				gameSocket.send(JSON.stringify({
@@ -279,7 +269,6 @@ function startWebSockets() {
 async function enterQueue() {
 	loadingScreen.style.display = 'block';
 	return new Promise((resolve, reject) => {
-		console.log("matchType: ", matchType, "gameMode: ", gameMode, "matchSuggestedName: ", matchSuggestedName);
 		let _matchSuggestedName = "";
 		let aliasName = "";
 		if (matchType == 'simpleMatch') {
@@ -303,7 +292,6 @@ async function enterQueue() {
 				reject(response)
 			})
 			.catch(error => {
-				console.error('There was a problem with the fetch operation:', error);
 				resolve(error);
 			});
 	})
@@ -314,11 +302,9 @@ async function enterQueueRandom() {
 	return new Promise((resolve, reject) => {
 		fetch(API_URL + `/game/enterQueueRandom?username=${randomUserData.login.username}`)
 			.then(response => {
-				console.log(response)
 				resolve(response)
 			})
 			.catch(error => {
-				console.error('There was a problem with the fetch operation:', error);
 				resolve(error);
 			});
 	})
@@ -328,10 +314,8 @@ export async function startGame() {
 	calculateLargest4x3Size();
 	if (userData) {
 		await enterQueue();
-		console.log("User as 42")
 	} else if (randomUserData) {
 		await enterQueueRandom();
-		console.log("User as random")
 	}
 	startWebSockets();
 	startEventListeners();
