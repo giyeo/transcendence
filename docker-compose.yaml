@@ -23,6 +23,7 @@ services:
       - db
     volumes:
       - ./nginx/www/:/app/staticfiles/:rw
+    restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/"]
       interval: 10s
@@ -30,6 +31,7 @@ services:
       retries: 3
   db:
     image: postgres:16.1-bullseye
+    restart: always
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
