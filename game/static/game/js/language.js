@@ -55,9 +55,9 @@ const translations = {
 		"fr": "Paramètres",
 	},
 	"madeby": {
-		"en": "Made by The Boys { Caio, Eduardo, Luigi, Rafael }",
-		"pt": "Feito por The Boys { Caio, Eduardo, Luigi, Rafael }",
-		"fr": "Réalisé par The Boys { Caio, Eduardo, Luigi, Rafael }",
+		"en": "Made by The Boys { Caio, Eduardo, Gustavo, Luigi, Rafael }",
+		"pt": "Feito por The Boys { Caio, Eduardo, Gustavo, Luigi, Rafael }",
+		"fr": "Réalisé par The Boys { Caio, Eduardo, Gustavo, Luigi, Rafael }",
 	},
 	"instructions2FA1": {
 		"en": "To toggle 2FA, scan the QR code below with your 2FA app and enter the OTP code.",
