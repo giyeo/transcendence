@@ -92,7 +92,7 @@ function logout() {
 	localStorage.removeItem("selectedLanguage");
 	window.location.reload();
 }
-  
+
 function setupSinglePageApplication() {
 	window.location.hash = 'login';
 	let intraCode = UTIL.getIntraCode();
@@ -132,14 +132,14 @@ function setupSinglePageApplication() {
 
 	var matchTypeElement = document.getElementById('matchTypeElement');
 
-	document.getElementById('login-guest').addEventListener('click', () => {
-		goToMenu();
-		matchTypeElement.style.display = "none";
-		buttonToggle2FA.removeEventListener("click", () => {});
-		buttonToggle2FA.style.display = "none";
-		buttonSendOTP.removeEventListener("click", () => {});
+	// document.getElementById('login-guest').addEventListener('click', () => {
+	// 	goToMenu();
+	// 	matchTypeElement.style.display = "none";
+	// 	buttonToggle2FA.removeEventListener("click", () => {});
+	// 	buttonToggle2FA.style.display = "none";
+	// 	buttonSendOTP.removeEventListener("click", () => {});
 
-	});
+	// });
 
 	document.getElementById('send-login-OTP').addEventListener('click', async () => {
 		let accessToken = await REST.verifyLoginOTP(document.getElementById('2fa-login-input').value);
